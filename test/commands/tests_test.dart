@@ -8,8 +8,8 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:gg_console_colors/gg_console_colors.dart';
+import 'package:gg_is_flutter/gg_is_flutter.dart';
 import 'package:gg_test/src/commands/tests.dart';
-import 'package:gg_test/src/tools/is_flutter.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 
@@ -95,6 +95,7 @@ void main() {
   // ...........................................................................
   setUp(
     () async {
+      testIsFlutter = null;
       await init();
     },
   );
