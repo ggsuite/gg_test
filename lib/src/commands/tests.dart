@@ -14,7 +14,6 @@ import 'package:gg_is_flutter/gg_is_flutter.dart';
 import 'package:gg_process/gg_process.dart';
 import 'package:gg_status_printer/gg_status_printer.dart';
 import 'package:gg_test/src/tools/error_files.dart';
-import 'package:gg_test/src/tools/is_github.dart';
 import 'package:path/path.dart';
 import 'package:recase/recase.dart';
 
@@ -56,8 +55,7 @@ class Tests extends GgDirCommand {
       message: isFlutter
           ? 'Running "flutter test --coverage"'
           : 'Running "dart test"',
-      printCallback: log,
-      useCarriageReturn: isGitHub,
+      log: log,
     );
 
     statusPrinter.status = GgStatusPrinterStatus.running;
