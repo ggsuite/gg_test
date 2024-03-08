@@ -4,7 +4,12 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
-library;
+String ignoreLines(bool x) {
+  // coverage:ignore-start
+  if (x) {
+    print('foo');
+  }
+  // coverage:ignore-end
 
-export 'src/gg_test.dart';
-export 'src/commands/tests.dart';
+  return 'foo';
+}

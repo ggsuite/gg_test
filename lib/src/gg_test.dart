@@ -5,13 +5,13 @@
 // found in the LICENSE file in the root of this package.
 
 import 'package:args/command_runner.dart';
-import './commands/my_command.dart';
+import 'package:gg_test/src/commands/tests.dart';
 
 /// The command line interface for GgTest
 class GgTest extends Command<dynamic> {
   /// Constructor
   GgTest({required this.log}) {
-    addSubcommand(MyCommand(log: log));
+    addSubcommand(Tests(log: log));
   }
 
   /// The log function
@@ -19,7 +19,7 @@ class GgTest extends Command<dynamic> {
 
   // ...........................................................................
   @override
-  final name = 'ggTest';
+  final name = 'test';
   @override
-  final description = 'Add your description here.';
+  final description = 'Execute tests with coverage.';
 }
