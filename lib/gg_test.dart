@@ -8,3 +8,4 @@ library;
 
 export 'src/gg_test.dart';
 export 'src/commands/tests.dart';
+export 'src/tools/error_info_reader.dart';

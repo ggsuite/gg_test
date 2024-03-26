@@ -4,27 +4,29 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
-import 'package:gg_test/src/tools/error_files.dart';
+import 'package:gg_test/src/tools/error_info_reader.dart';
 import 'package:test/test.dart';
 
 void main() {
+  final errorInfoReader = ErrorInfoReader();
+
   group('errorLines(message)', () {
     group('should return', () {
       group('an empty array', () {
         test('when message is null', () {
-          final result = errorFiles(null);
+          final result = errorInfoReader.filePathes(null);
           expect(result, isEmpty);
         });
       });
 
       group('a list of vscode compatible error lines,', () {
         test('for dart analyze output', () {
-          final result = errorFiles(dartAnalyzeOutput);
+          final result = errorInfoReader.filePathes(dartAnalyzeOutput);
           expect(result, ['lib/src/tools/error_lines.dart:7:14']);
         });
 
         test('for dart format output', () {
-          final result = errorFiles(dartFormatOutput);
+          final result = errorInfoReader.filePathes(dartFormatOutput);
           expect(result, ['sub/test1.dart', 'test.dart']);
         });
       });
