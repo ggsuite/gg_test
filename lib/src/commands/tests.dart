@@ -440,7 +440,7 @@ void main() {
       );
 
       // Print message
-      _messages.add('- $relativeTestFile $relativeSrcFile');
+      _messages.add('- $relativeTestFile\n  $relativeSrcFile');
     }
   }
 

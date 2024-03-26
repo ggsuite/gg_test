@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.5
+
+- Improve formatting
+
 ## 1.0.4
 
 - Make ErrorInfoReader public
