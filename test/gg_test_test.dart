@@ -20,7 +20,7 @@ void main() {
   group('GgTest()', () {
     // #########################################################################
     group('GgTest', () {
-      final ggTest = GgTest(log: (msg) => messages.add(msg));
+      final ggTest = GgTest(ggLog: (msg) => messages.add(msg));
 
       // .......................................................................
       test('should show all sub commands', () async {

@@ -21,7 +21,7 @@ void main() {
 
       final expectedMessages = [
         'Execute tests with coverage',
-        'Check tests and coverage',
+        'Runs »dart test«',
       ];
 
       final stdout = result.stdout as String;

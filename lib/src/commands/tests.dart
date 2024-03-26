@@ -8,14 +8,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:gg_args/gg_args.dart';
-
 import 'package:gg_console_colors/gg_console_colors.dart';
 import 'package:gg_is_flutter/gg_is_flutter.dart';
+import 'package:gg_log/gg_log.dart';
 import 'package:gg_process/gg_process.dart';
 import 'package:gg_status_printer/gg_status_printer.dart';
 import 'package:gg_test/src/tools/error_files.dart';
 import 'package:path/path.dart';
 import 'package:recase/recase.dart';
+import 'package:mocktail/mocktail.dart';
 
 typedef _Report = Map<String, Map<int, int>>;
 typedef _MissingLines = Map<String, List<int>>;
@@ -24,44 +25,37 @@ typedef _TaskResult = (int, List<String>, List<String>);
 // #############################################################################
 
 /// Runs dart test on the source code
-class Tests extends GgDirCommand {
+class Tests extends DirCommand<void> {
   /// Constructor
   Tests({
-    required super.log,
+    required super.ggLog,
     this.processWrapper = const GgProcessWrapper(),
-  });
-
-  /// Then name of the command
-  @override
-  final name = 'tests';
-
-  /// The description of the command
-  @override
-  final description = 'Check tests and coverage';
+  }) : super(name: 'tests', description: 'Runs »dart test«.');
 
   // ...........................................................................
   /// Executes the command
   @override
-  Future<void> run() async {
-    await super.run();
-    await GgDirCommand.checkDir(directory: inputDir);
+  Future<void> exec({
+    required Directory directory,
+    required GgLog ggLog,
+  }) async {
+    await check(directory: directory);
 
     // Save directories
-    _coverageDir = Directory(join(inputDir.path, 'coverage'));
-    _srcDir = Directory(join(inputDir.path, 'lib', 'src'));
-
+    _coverageDir = Directory(join(directory.path, 'coverage'));
+    _srcDir = Directory(join(directory.path, 'lib', 'src'));
     // Init status printer
     final statusPrinter = GgStatusPrinter<void>(
-      message: isFlutter
+      message: isFlutterDir(directory)
           ? 'Running "flutter test --coverage"'
           : 'Running "dart test"',
-      log: log,
+      ggLog: ggLog,
     );
 
     statusPrinter.status = GgStatusPrinterStatus.running;
 
     // Announce the command
-    final result = await _task();
+    final result = await _task(directory);
     final (code, messages, errors) = result;
     final success = code == 0;
 
@@ -93,14 +87,14 @@ class Tests extends GgDirCommand {
     final stdoutMsg = messages.where((e) => e.isNotEmpty).join('\n');
 
     if (errorMsg.isNotEmpty) {
-      log(errorMsg); // coverage:ignore-line
+      ggLog(errorMsg); // coverage:ignore-line
     }
     if (stdoutMsg.isNotEmpty) {
-      log(stdoutMsg);
+      ggLog(stdoutMsg);
     }
   }
 
-// .............................................................................
+  // ...........................................................................
   List<String> _extractErrorLines(String message) {
     // Regular expression to match file paths and line numbers
     RegExp exp = RegExp(r'test\/[\/\w]+\.dart[\s:]*\d+:\d+');
@@ -119,7 +113,7 @@ class Tests extends GgDirCommand {
     return result;
   }
 
-// .............................................................................
+  // ...........................................................................
   String _addDotSlash(String relativeFile) {
     if (!relativeFile.startsWith('./')) {
       return './$relativeFile';
@@ -128,12 +122,12 @@ class Tests extends GgDirCommand {
   }
 
 // .............................................................................
-  _Report _generateReport() {
-    return isFlutter ? _generateFlutterReport() : _generateDartReport();
+  _Report _generateReport(Directory dir) {
+    return isFlutter ? _generateFlutterReport(dir) : _generateDartReport(dir);
   }
 
   // ...........................................................................
-  _Report _generateDartReport() {
+  _Report _generateDartReport(Directory dir) {
     // Iterate all 'dart.vm.json' files within coverage directory
     final coverageFiles =
         _coverageDir.listSync(recursive: true).whereType<File>().where((file) {
@@ -141,7 +135,7 @@ class Tests extends GgDirCommand {
     }).toList();
 
     final relativeCoverageFiles = coverageFiles.map((file) {
-      return relative(file.path, from: inputDir.path);
+      return relative(file.path, from: dir.path);
     }).toList();
 
     // Prepare result
@@ -157,8 +151,7 @@ class Tests extends GgDirCommand {
       final implementationFileWithoutLib =
           implementationFile.replaceAll('lib/', '');
 
-      final fileContent =
-          File(join(inputDir.path, coverageFile)).readAsStringSync();
+      final fileContent = File(join(dir.path, coverageFile)).readAsStringSync();
       final coverageData = jsonDecode(fileContent);
 
       // Iterate coverage data
@@ -171,7 +164,7 @@ class Tests extends GgDirCommand {
         // Read script
 
         // Find or create summary for script
-        implementationFile = join(inputDir.path, implementationFile);
+        implementationFile = join(dir.path, implementationFile);
         result[implementationFile] ??= {};
         late Map<int, int> summaryForScript = result[implementationFile]!;
         final ignoredLines = _ignoredLines(implementationFile);
@@ -194,10 +187,10 @@ class Tests extends GgDirCommand {
   }
 
   // ...........................................................................
-  _Report _generateFlutterReport() {
+  _Report _generateFlutterReport(Directory dir) {
     // Iterate all 'lcov' files within coverage directory
     final coverageFile = File(
-      join(inputDir.path, 'coverage', 'lcov.info'),
+      join(dir.path, 'coverage', 'lcov.info'),
     );
 
     // Prepare result
@@ -213,7 +206,7 @@ class Tests extends GgDirCommand {
       // Read script
       if (line.startsWith('SF:')) {
         final script = './${line.replaceFirst('SF:', '')}';
-        final scriptAbsolute = canonicalize(join(inputDir.path, script));
+        final scriptAbsolute = canonicalize(join(dir.path, script));
         summaryForScript = {};
         result[scriptAbsolute] = summaryForScript;
       }
@@ -248,7 +241,7 @@ class Tests extends GgDirCommand {
     return percentage;
   }
 
-// .............................................................................
+  // ...........................................................................
   final Map<String, List<bool>> _ignoredLinesCache = {};
 
   // ...........................................................................
@@ -293,7 +286,7 @@ class Tests extends GgDirCommand {
     return ignoredLines;
   }
 
-// .............................................................................
+  // ...........................................................................
   _MissingLines _estimateMissingLines(_Report report) {
     final _MissingLines result = {};
     for (final script in report.keys) {
@@ -312,29 +305,31 @@ class Tests extends GgDirCommand {
     return result;
   }
 
-// .............................................................................
-  void _printMissingLines(_MissingLines missingLines) {
+  // ...........................................................................
+  void _printMissingLines(_MissingLines missingLines, Directory dir) {
     for (final script in missingLines.keys) {
       final testFile = script
           .replaceFirst('lib/src', 'test')
           .replaceAll('.dart', '_test.dart');
 
-      final relativeTestFile = relative(testFile, from: inputDir.path);
-      final relativeScript = relative(script, from: inputDir.path);
+      final relativeTestFile = relative(testFile, from: dir.path);
+      final relativeScript = relative(script, from: dir.path);
 
       const bool printFirstOnly = true;
       final lineNumbers = missingLines[script]!;
       for (final lineNumber in lineNumbers) {
         // Don't print too many lines
+        var implementationRed = red('$relativeScript:$lineNumber');
+        var testFileBlue = blue(relativeTestFile);
 
-        _messages.add('- $red$relativeScript:$lineNumber$reset');
-        _messages.add('  $blue$relativeTestFile$reset\n');
+        _messages.add('- $implementationRed');
+        _messages.add('  $testFileBlue');
         if (printFirstOnly) break;
       }
     }
   }
 
-// .............................................................................
+  // ...........................................................................
   void _writeLcovReport(_Report report) {
     final buffer = StringBuffer();
     for (final script in report.keys) {
@@ -399,12 +394,17 @@ void main() {
 ''';
 
 // .............................................................................
-  void _createMissingTestFiles(Iterable<(File, File)> missingFiles) {
+  void _createMissingTestFiles(
+    Iterable<(File, File)> missingFiles,
+    Directory dir,
+  ) {
     // Create missing test files and ask user to edit it
     _messages.add(
-      '${yellow}Tests were created. Please revise:$reset',
+      yellow(
+        'Tests were created. Please revise:',
+      ),
     );
-    final packageName = basename(inputDir.path);
+    final packageName = basename(dir.path);
 
     for (final (implementationFile, testFile) in missingFiles) {
       // Create test file with intermediate directories
@@ -415,12 +415,8 @@ void main() {
       final className =
           basenameWithoutExtension(implementationFile.path).pascalCase;
 
-      final implementationFileRelative =
-          relative(implementationFile.path, from: inputDir.path);
-
-      final implementationFilePath = implementationFileRelative
-          .replaceAll('lib/', '')
-          .replaceAll('./', '');
+      final implementationFilePath =
+          implementationFile.path.replaceAll('lib/', '').replaceAll('./', '');
 
       final boilerplate = _testBoilerplate
           .replaceAll('Boilerplate', className)
@@ -435,13 +431,16 @@ void main() {
 
       // Create boilerplate file
       testFile.writeAsStringSync(boilerplate);
-      final relativeTestFile = relative(testFile.path, from: inputDir.path);
-      final relativeSrcFile =
-          relative(implementationFile.path, from: inputDir.path);
+      final relativeTestFile = red(relative(testFile.path, from: dir.path));
+      final relativeSrcFile = brightBlack(
+        relative(
+          implementationFile.path,
+          from: dir.path,
+        ),
+      );
 
       // Print message
-      _messages.add('- $red$relativeTestFile$reset');
-      _messages.add('  $brightBlack$relativeSrcFile$reset');
+      _messages.add('- $relativeTestFile $relativeSrcFile');
     }
   }
 
@@ -463,23 +462,27 @@ void main() {
   }
 
   // ...........................................................................
-  void _printUntestedFiles(Iterable<(File, File)> files) {
+  void _printUntestedFiles(
+    Iterable<(File, File)> files,
+    Directory dir,
+  ) {
     for (final tuple in files) {
       final (implementation, test) = tuple;
       final srcFileRelative =
-          relative(implementation.path, from: inputDir.path);
-      final testFileRelative = relative(test.path, from: inputDir.path);
+          blue(relative(implementation.path, from: dir.path));
+      final testFileRelative = red(relative(test.path, from: dir.path));
 
-      _messages.add('- $red$testFileRelative$reset');
-      _messages.add('  $blue$srcFileRelative$reset');
+      _messages.add('- $testFileRelative');
+      _messages.add('  $srcFileRelative');
     }
   }
 
   // ...........................................................................
-  Future<int> _test() => isFlutter ? _testFlutter() : _testDart();
+  Future<int> _test(Directory dir) =>
+      isFlutter ? _testFlutter(dir) : _testDart(dir);
 
   // ...........................................................................
-  Future<int> _testDart() async {
+  Future<int> _testDart(Directory dir) async {
     // Remove the coverage directory
     if (_coverageDir.existsSync()) {
       _coverageDir.deleteSync(recursive: true);
@@ -502,7 +505,7 @@ void main() {
         '--chain-stack-traces',
         '--no-color',
       ],
-      workingDirectory: inputDir.path,
+      workingDirectory: dir.path,
     );
 
     // Iterate over stdout and print output using a for loop
@@ -536,12 +539,16 @@ void main() {
           !errorLines.contains(newErrorLines.first)) {
         // Print error line
 
-        final newErrorLinesString = _addDotSlash(newErrorLines.join(',\n   '));
-        _messages.add(' - $red$newErrorLinesString$reset');
+        final newErrorLinesString = red(
+          _addDotSlash(
+            newErrorLines.join(',\n   '),
+          ),
+        );
+        _messages.add(' - $newErrorLinesString');
 
         // Print messages belonging to this error
         for (var message in previousMessagesBelongingToError) {
-          _messages.add('$brightBlack$message$reset');
+          _messages.add(brightBlack(message));
         }
 
         isError = false;
@@ -551,7 +558,7 @@ void main() {
   }
 
   // ...........................................................................
-  Future<int> _testFlutter() async {
+  Future<int> _testFlutter(Directory dir) async {
     int exitCode = 0;
 
     // Execute flutter tests
@@ -561,7 +568,7 @@ void main() {
         'test',
         '--coverage',
       ],
-      workingDirectory: inputDir.path,
+      workingDirectory: dir.path,
     );
 
     var errorLines = <String>{};
@@ -582,34 +589,36 @@ void main() {
   }
 
   // ...........................................................................
-  Future<_TaskResult> _task() async {
+  Future<_TaskResult> _task(Directory dir) async {
     // Get implementation files
     final files = _implementationAndTestFiles();
 
     // Check if test files are missing for implementation files
     final missingTestFiles = _collectMissingTestFiles(files);
     if (missingTestFiles.isNotEmpty) {
-      _createMissingTestFiles(missingTestFiles);
+      _createMissingTestFiles(missingTestFiles, dir);
       return (1, _messages, _errors);
     }
 
     // Run Tests
-    final error = await _test();
+    final error = await _test(dir);
 
     if (error != 0) {
       return (error, _messages, _errors);
     }
 
     // Generate coverage reports
-    final report = _generateReport();
+    final report = _generateReport(dir);
 
     // Estimate untested files
     final untestedFiles = _findUntestedFiles(report, files);
     if (untestedFiles.isNotEmpty) {
       _messages.add(
-        '${yellow}Please add valid tests to the following files:$reset',
+        yellow(
+          'Please add valid tests to the following files:',
+        ),
       );
-      _printUntestedFiles(untestedFiles);
+      _printUntestedFiles(untestedFiles, dir);
       return (1, _messages, _errors);
     }
 
@@ -622,14 +631,16 @@ void main() {
     if (percentage != 100.0) {
       // Print percentage
       _messages.add(
-        '${yellow}Coverage not 100%. Untested code:$reset',
+        yellow(
+          'Coverage not 100%. Untested code:',
+        ),
       );
 
       // Print missing lines
       final missingLines =
           percentage < 100.0 ? _estimateMissingLines(report) : _MissingLines();
 
-      _printMissingLines(missingLines);
+      _printMissingLines(missingLines, dir);
 
       return (1, _messages, _errors);
     } else {
@@ -638,3 +649,7 @@ void main() {
     }
   }
 }
+
+// .............................................................................
+/// Mocktail mock
+class MockTests extends Mock implements Tests {}

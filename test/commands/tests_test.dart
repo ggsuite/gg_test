@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:gg_console_colors/gg_console_colors.dart';
 import 'package:gg_is_flutter/gg_is_flutter.dart';
-import 'package:gg_test/src/commands/tests.dart';
+import 'package:gg_test/gg_test.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 
@@ -64,7 +64,7 @@ void main() {
   Future<void> initCommandAndRunner() async {
     runner = CommandRunner<void>('check', 'Check');
 
-    testCmd = Tests(log: messages.add);
+    testCmd = Tests(ggLog: messages.add);
     runner.addCommand(testCmd);
   }
 
@@ -95,7 +95,6 @@ void main() {
   // ...........................................................................
   setUp(
     () async {
-      testIsFlutter = null;
       await init();
     },
   );
@@ -125,7 +124,6 @@ void main() {
 
                 // Delete test file
                 testFile.deleteSync();
-                expect(await testFile.exists(), isFalse);
 
                 // Run tests
                 await expectLater(
@@ -147,29 +145,12 @@ void main() {
 
                 expect(
                   messages[2],
-                  contains('${yellow}Tests were created. Please revise:'),
+                  contains(red('test/simple_base_test.dart')),
                 );
 
                 expect(
                   messages[2],
-                  contains('${red}test/simple_base_test.dart$reset'),
-                );
-
-                expect(
-                  messages[2],
-                  contains('${brightBlack}lib/src/simple_base.dart$reset'),
-                );
-
-                // The test file should have been created
-                expect(await testFile.exists(), isTrue);
-
-                // The test file should include the implementation file
-                final fileContent = await testFile.readAsString();
-                expect(
-                  fileContent,
-                  contains(
-                    'import \'package:sample_project/src/simple_base.dart\';',
-                  ),
+                  contains(brightBlack('lib/src/simple_base.dart')),
                 );
               },
             );
@@ -213,27 +194,23 @@ void main() {
               expect(
                 messages[2],
                 contains(
-                  '${yellow}Please add valid tests to the following files:',
-                ),
-              );
-              expect(
-                messages[2],
-                contains(
-                  '${yellow}Please add valid tests to the following files:',
+                  yellow(
+                    'Please add valid tests to the following files:',
+                  ),
                 ),
               );
 
               expect(
                 messages[2],
                 contains(
-                  '${red}test/simple_base_test.dart$reset',
+                  red('test/simple_base_test.dart'),
                 ),
               );
 
               expect(
                 messages[2],
                 contains(
-                  '${blue}lib/src/simple_base.dart$reset',
+                  blue('lib/src/simple_base.dart'),
                 ),
               );
             });
@@ -266,17 +243,17 @@ void main() {
 
               expect(
                 messages[2],
-                contains('${yellow}Coverage not 100%. Untested code:$reset'),
+                contains(yellow('Coverage not 100%. Untested code:')),
               );
 
               expect(
                 messages[2],
-                contains('- ${red}lib/src/simple_base.dart:8$reset'),
+                contains('- ${red('lib/src/simple_base.dart:8')}'),
               );
 
               expect(
                 messages[2],
-                contains('  ${blue}test/simple_base_test.dart$reset'),
+                contains('  ${blue('test/simple_base_test.dart')}'),
               );
             });
 
@@ -307,7 +284,7 @@ void main() {
               expect(messages[1], contains('❌ Running "dart test"'));
               expect(
                 messages[2],
-                contains('$red./test/simple_base_test.dart:17:7$reset'),
+                contains(red('./test/simple_base_test.dart:17:7')),
               );
               expect(
                 messages[2],
@@ -376,3 +353,21 @@ void main() {
     });
   });
 }
+
+const flutterLcovReport = '''
+SF:lib/src/simple_base.dart
+DA:5,1
+LF:1
+LH:1
+end_of_record
+SF:lib/src/ignore_line.dart
+DA:7,1
+LF:1
+LH:1
+end_of_record
+SF:lib/src/ignore_lines.dart
+DA:7,1
+LF:1
+LH:1
+end_of_record
+''';
