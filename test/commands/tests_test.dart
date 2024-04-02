@@ -25,9 +25,9 @@ void main() {
   final messages = <String>[];
   late CommandRunner<void> runner;
   const pathTypes = [
-    // 'absolute',
+    'absolute',
     'relative',
-  ]; // Add also "relative" from time to time
+  ];
 
   // ...........................................................................
   tearDown(() {
