@@ -24,7 +24,10 @@ void main() {
   late Tests testCmd;
   final messages = <String>[];
   late CommandRunner<void> runner;
-  const pathTypes = ['absolute']; // Add also "relative" from time to time
+  const pathTypes = [
+    // 'absolute',
+    'relative',
+  ]; // Add also "relative" from time to time
 
   // ...........................................................................
   tearDown(() {
@@ -157,6 +160,7 @@ void main() {
 
             test('if implementation files do not contain valid tests',
                 () async {
+              if (isRelative) Directory.current = sampleProject;
               // Comment out tests in test file
               final testFileWithoutTest = testFileContent
                   .replaceAll(
@@ -259,6 +263,7 @@ void main() {
 
             test('if there failing unit tests', () async {
               // Add a failing test to test file
+              if (isRelative) Directory.current = sampleProject;
 
               final modiefiedTestFile =
                   testFileContent.replaceAll('// PLACEHOLDER', 'expect(1, 2);');
@@ -334,8 +339,13 @@ void main() {
               testIsFlutter = true;
 
               // Run tests
-              if (isRelative) Directory.current = sampleProject;
-              await runner.run(['tests', '--input', input()]);
+              if (isRelative) {
+                Directory.current = sampleProject;
+              }
+
+              await runner.run(
+                ['tests', '--input', input()],
+              );
 
               // Check messages
               expect(

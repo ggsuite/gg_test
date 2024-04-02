@@ -10,8 +10,9 @@
       "type": "dart",
       "request": "launch",
       "program": "${workspaceFolder}/bin/gg_test.dart",
-      "args": ["--param", "value"],
-      "console": "debugConsole"
+      "args": ["tests"],
+      "console": "debugConsole",
+      "cwd": "${workspaceFolder}/../gg_router"
     },
     {
       "name": "Current File",

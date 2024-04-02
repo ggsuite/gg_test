@@ -208,7 +208,8 @@ class Tests extends DirCommand<void> {
         final script = './${line.replaceFirst('SF:', '')}';
         final scriptAbsolute = canonicalize(join(dir.path, script));
         summaryForScript = {};
-        result[scriptAbsolute] = summaryForScript;
+        final key = dir.path.startsWith('.') ? script : scriptAbsolute;
+        result[key] = summaryForScript;
       }
       // Read coverage
       else if (line.startsWith('DA:')) {
@@ -567,6 +568,8 @@ void main() {
       [
         'test',
         '--coverage',
+        '-r',
+        'expanded',
       ],
       workingDirectory: dir.path,
     );

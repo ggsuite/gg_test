@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.7
+
+- Fix flutter errors happening with relative pathes
+
 ## 1.0.6
 
 - Return errors when error lines occur
