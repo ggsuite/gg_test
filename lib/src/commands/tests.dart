@@ -516,7 +516,7 @@ void main() {
       errorLines,
     );
 
-    return process.exitCode;
+    return await process.exitCode != 0 || errorLines.isNotEmpty ? 1 : 0;
   }
 
   // ...........................................................................
@@ -585,7 +585,7 @@ void main() {
 
     exitCode = await process.exitCode;
 
-    return exitCode;
+    return exitCode != 0 || errorLines.isNotEmpty ? 1 : 0;
   }
 
   // ...........................................................................

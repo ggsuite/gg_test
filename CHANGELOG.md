@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.6
+
+- Return errors when error lines occur
+
 ## 1.0.5
 
 - Improve formatting
