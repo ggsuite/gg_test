@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.0.8
+
+- Fix: Old coverage data could break tests
+
 ## 1.0.7
 
 - Fix flutter errors happening with relative pathes

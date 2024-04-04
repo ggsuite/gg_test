@@ -593,6 +593,12 @@ void main() {
 
   // ...........................................................................
   Future<_TaskResult> _task(Directory dir) async {
+    // Delete the old coverage directory
+    if (_coverageDir.existsSync()) {
+      await _coverageDir.delete(recursive: true);
+      await _coverageDir.create();
+    }
+
     // Get implementation files
     final files = _implementationAndTestFiles();
 
