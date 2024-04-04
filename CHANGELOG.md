@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.0.8
+## 1.0.9
 
 - Fix: Old coverage data could break tests
 

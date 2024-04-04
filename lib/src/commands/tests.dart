@@ -148,6 +148,15 @@ class Tests extends DirCommand<void> {
       var implementationFile = testFile
           .replaceAll('test/', 'lib/src/')
           .replaceAll('_test.dart', '.dart');
+
+      final implementationFileExists =
+          File(join(dir.path, implementationFile)).existsSync();
+
+      // Workaround: In some cases dart tests adds old coverage files
+      if (!implementationFileExists) {
+        continue;
+      }
+
       final implementationFileWithoutLib =
           implementationFile.replaceAll('lib/', '');
 
@@ -593,12 +602,6 @@ void main() {
 
   // ...........................................................................
   Future<_TaskResult> _task(Directory dir) async {
-    // Delete the old coverage directory
-    if (_coverageDir.existsSync()) {
-      await _coverageDir.delete(recursive: true);
-      await _coverageDir.create();
-    }
-
     // Get implementation files
     final files = _implementationAndTestFiles();
 
