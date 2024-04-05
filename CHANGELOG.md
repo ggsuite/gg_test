@@ -9,6 +9,7 @@
 ### Changed
 
 - Rework changelog
+- Pipelines
 
 ### Removed
 
