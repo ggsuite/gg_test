@@ -1,29 +1,37 @@
-# Change Log
+# Changelog
 
-## 1.0.9
+## [Unreleased]
+
+### Changed
+
+- Rework changelog
+
+## 1.0.9 - 2024-01-01
 
 - Fix: Old coverage data could break tests
 
-## 1.0.7
+## 1.0.7 - 2024-01-01
 
 - Fix flutter errors happening with relative pathes
 
-## 1.0.6
+## 1.0.6 - 2024-01-01
 
 - Return errors when error lines occur
 
-## 1.0.5
+## 1.0.5 - 2024-01-01
 
 - Improve formatting
 
-## 1.0.4
+## 1.0.4 - 2024-01-01
 
 - Make ErrorInfoReader public
 
-## 1.0.3
+## 1.0.3 - 2024-01-01
 
 - Add latest dependencies
 
-## 1.0.2
+## 1.0.2 - 2024-01-01
 
 - Initial version.
+
+[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.0.9...HEAD
