@@ -27,6 +27,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check changed files
+        run: git show --name-only HEAD --pretty=
+
       - name: Check for Flutter Project
         run: |
           if [ -f pubspec.yaml ] && grep -q "sdk: flutter" pubspec.yaml; then

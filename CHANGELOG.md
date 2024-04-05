@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added a pipeline step to log git issues
+
 ### Changed
 
 - Rework changelog
