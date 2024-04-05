@@ -6,6 +6,10 @@
 
 - Rework changelog
 
+### Removed
+
+- pubspec.lock
+
 ## 1.0.9 - 2024-01-01
 
 - Fix: Old coverage data could break tests
