@@ -5,6 +5,7 @@
 ### Added
 
 - Added a pipeline step to log git issues
+- Pipeline: Install flutter SDK when a sdk file is found containing flutter
 
 ### Changed
 
