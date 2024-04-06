@@ -11,6 +11,7 @@
 - Rework changelog
 - Pipelines
 - 'Github Actions Pipeline'
+- Exclude sample\_project from analyzer
 
 ### Removed
 
