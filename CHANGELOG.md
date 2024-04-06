@@ -14,6 +14,10 @@
 - 'Github Actions Pipeline'
 - Exclude sample\_project from analyzer
 
+### Fixed
+
+- Fixed an error in previous change
+
 ### Removed
 
 - pubspec.lock
