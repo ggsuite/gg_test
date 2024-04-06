@@ -10,6 +10,7 @@
 
 - Rework changelog
 - Pipelines
+- 'Github Actions Pipeline'
 
 ### Removed
 
