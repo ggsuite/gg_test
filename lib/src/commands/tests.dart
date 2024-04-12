@@ -35,7 +35,7 @@ class Tests extends DirCommand<void> {
   // ...........................................................................
   /// Executes the command
   @override
-  Future<void> exec({
+  Future<void> get({
     required Directory directory,
     required GgLog ggLog,
   }) async {

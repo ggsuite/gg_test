@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Removed
+
+- dependency to gg\_install\_gg, remove ./check script
+
+## 1.0.12 - 2024-04-11
+
+### Changed
+
+- Upgrade dependencies
+
 ## [1.0.11] - 2024-04-09
 
 ### Removed
@@ -56,5 +68,6 @@
 
 - Initial version.
 
+[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.0.12...HEAD
 [1.0.11]: https://github.com/inlavigo/gg_test/compare/1.0.10...1.0.11
 [1.0.10]: https://github.com/inlavigo/gg_test/compare/1.0.9...1.0.10
