@@ -1,6 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.13] - 2024-04-13
+
+### Changed
+
+- Adjusted version
 
 ### Removed
 
@@ -69,6 +73,6 @@
 
 - Initial version.
 
-[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.0.12...HEAD
+[1.0.13]: https://github.com/inlavigo/gg_test/compare/1.0.12...1.0.13
 [1.0.11]: https://github.com/inlavigo/gg_test/compare/1.0.10...1.0.11
 [1.0.10]: https://github.com/inlavigo/gg_test/compare/1.0.9...1.0.10
