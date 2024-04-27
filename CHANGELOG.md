@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.14] - 2024-04-27
+
+### Fixed
+
+- Fix an error in auto generated test files
+
 ## [1.0.13] - 2024-04-13
 
 ### Changed
@@ -73,6 +79,7 @@
 
 - Initial version.
 
+[1.0.14]: https://github.com/inlavigo/gg_test/compare/1.0.13...1.0.14
 [1.0.13]: https://github.com/inlavigo/gg_test/compare/1.0.12...1.0.13
 [1.0.11]: https://github.com/inlavigo/gg_test/compare/1.0.10...1.0.11
 [1.0.10]: https://github.com/inlavigo/gg_test/compare/1.0.9...1.0.10

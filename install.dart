@@ -15,7 +15,7 @@ import 'package:colorize/colorize.dart';
 
 // #############################################################################
 void main() {
-  const exe = 'ggTest';
+  const exe = 'gg_test';
   const src = 'bin/gg_test.dart';
   final installDir = '${Platform.environment['HOME']}/.pub-cache/bin';
 

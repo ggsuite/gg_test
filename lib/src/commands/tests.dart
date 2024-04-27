@@ -394,10 +394,12 @@ class Tests extends DirCommand<void> {
 import 'package:test/test.dart';
 
 void main() {
-  group('Boilerplate', () {
-    test('should work fine', () {
-      // INSTANTIATE CLASS HERE
-      expect(true, isNotNull);
+  group('CLASSNAME', () {
+    group('fo()', () {
+      test('should work', (){
+        // INSTANTIATE CLASS HERE
+        expect(true, isNotNull);
+      });
     });
   });
 }
@@ -414,7 +416,7 @@ void main() {
         'Tests were created. Please revise:',
       ),
     );
-    final packageName = basename(dir.path);
+    final packageName = basename(canonicalize(dir.path));
 
     for (final (implementationFile, testFile) in missingFiles) {
       // Create test file with intermediate directories
@@ -425,19 +427,20 @@ void main() {
       final className =
           basenameWithoutExtension(implementationFile.path).pascalCase;
 
-      final implementationFilePath =
-          implementationFile.path.replaceAll('lib/', '').replaceAll('./', '');
+      final classNameCamelCase = className.camelCase;
 
       final boilerplate = _testBoilerplate
-          .replaceAll('Boilerplate', className)
-          .replaceAll('// INSTANTIATE CLASS HERE', '// const $className();')
+          .replaceAll('CLASSNAME', className)
+          .replaceAll(
+            '// INSTANTIATE CLASS HERE',
+            'final $classNameCamelCase = $className();',
+          )
           .replaceAll(
             'import \'package:test/test.dart\';',
-            'import \'package:$packageName/'
-                // ignore: missing_whitespace_between_adjacent_strings
-                '$implementationFilePath\';\n'
+            'import \'package:$packageName/$packageName.dart\';\n'
                 'import \'package:test/test.dart\';\n',
-          );
+          )
+          .replaceAll('expect(true', 'expect($classNameCamelCase');
 
       // Create boilerplate file
       testFile.writeAsStringSync(boilerplate);
