@@ -395,7 +395,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('CLASSNAME', () {
-    group('fo()', () {
+    group('test', () {
       test('should work', (){
         // INSTANTIATE CLASS HERE
         expect(true, isNotNull);
@@ -433,7 +433,7 @@ void main() {
           .replaceAll('CLASSNAME', className)
           .replaceAll(
             '// INSTANTIATE CLASS HERE',
-            'final $classNameCamelCase = $className();',
+            'final $classNameCamelCase = $className.example;',
           )
           .replaceAll(
             'import \'package:test/test.dart\';',

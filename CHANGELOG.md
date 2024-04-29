@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.15] - 2024-04-29
 
 ### Changed
 
 - Update install script
+- Slightly changed auto generated test file
 
 ## [1.0.14] - 2024-04-27
 
@@ -85,7 +86,7 @@
 
 - Initial version.
 
-[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.0.14...HEAD
+[1.0.15]: https://github.com/inlavigo/gg_test/compare/1.0.14...1.0.15
 [1.0.14]: https://github.com/inlavigo/gg_test/compare/1.0.13...1.0.14
 [1.0.13]: https://github.com/inlavigo/gg_test/compare/1.0.12...1.0.13
 [1.0.11]: https://github.com/inlavigo/gg_test/compare/1.0.10...1.0.11
