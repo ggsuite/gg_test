@@ -395,7 +395,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('CLASSNAME', () {
-    group('test', () {
+    group('example', () {
       test('should work', (){
         // INSTANTIATE CLASS HERE
         expect(true, isNotNull);

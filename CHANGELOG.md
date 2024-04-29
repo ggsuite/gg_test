@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.16] - 2024-04-30
+
+### Changed
+
+- Generated test file: Renamed test into example
+
 ## [1.0.15] - 2024-04-29
 
 ### Changed
@@ -86,6 +92,7 @@
 
 - Initial version.
 
+[1.0.16]: https://github.com/inlavigo/gg_test/compare/1.0.15...1.0.16
 [1.0.15]: https://github.com/inlavigo/gg_test/compare/1.0.14...1.0.15
 [1.0.14]: https://github.com/inlavigo/gg_test/compare/1.0.13...1.0.14
 [1.0.13]: https://github.com/inlavigo/gg_test/compare/1.0.12...1.0.13
