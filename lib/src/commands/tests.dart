@@ -361,7 +361,7 @@ class Tests extends DirCommand<void> {
     // Get all implementation files
     final implementationFiles =
         _srcDir.listSync(recursive: true).whereType<File>().where((file) {
-      return file.path.endsWith('.dart');
+      return file.path.endsWith('.dart') && !file.path.endsWith('.g.dart');
     }).toList();
 
     final result = implementationFiles.map((implementationFile) {
