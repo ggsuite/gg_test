@@ -13,7 +13,7 @@ import 'package:gg_is_flutter/gg_is_flutter.dart';
 import 'package:gg_log/gg_log.dart';
 import 'package:gg_process/gg_process.dart';
 import 'package:gg_status_printer/gg_status_printer.dart';
-import 'package:gg_test/src/tools/error_info_reader.dart';
+import 'package:gg_test/gg_test.dart';
 import 'package:path/path.dart';
 import 'package:recase/recase.dart';
 import 'package:mocktail/mocktail.dart';
@@ -169,11 +169,15 @@ class Tests extends DirCommand<void> {
         final source = entry['source'] as String;
         return (source.contains(implementationFileWithoutLib));
       });
+
+      // Write data for implementation file
+      implementationFile = join(dir.path, implementationFile);
+
+      // Write missing lines into the file
       for (final entry in entriesForImplementationFile) {
         // Read script
 
-        // Find or create summary for script
-        implementationFile = join(dir.path, implementationFile);
+        // Create an entry for the file
         result[implementationFile] ??= {};
         late Map<int, int> summaryForScript = result[implementationFile]!;
         final ignoredLines = _ignoredLines(implementationFile);
@@ -202,7 +206,7 @@ class Tests extends DirCommand<void> {
       join(dir.path, 'coverage', 'lcov.info'),
     );
 
-    // Prepare result
+    // Prepare resultsh
     final result = _Report();
 
     // Prepare report for file
@@ -464,10 +468,21 @@ void main() {
   ) {
     final result = files.where(
       (e) {
-        return !report.containsKey(e.$1.path) &&
-            !File(e.$1.path)
-                .readAsStringSync()
-                .contains('coverage:ignore-file');
+        if (report.containsKey(e.$1.path)) {
+          return false;
+        }
+
+        final fileContent = File(e.$1.path).readAsStringSync();
+
+        // Ignore coverage file
+        bool ignoreMissingCoverage =
+            // - if ignore file comment is found
+            fileContent.contains('coverage:ignore-file') ||
+
+                // - if the file contains no functions
+                !hasFunctions(fileContent);
+
+        return !ignoreMissingCoverage;
       },
     ).toList();
 
