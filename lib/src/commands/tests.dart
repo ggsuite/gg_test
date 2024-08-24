@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:gg_args/gg_args.dart';
 import 'package:gg_console_colors/gg_console_colors.dart';
 import 'package:gg_is_flutter/gg_is_flutter.dart';
+import 'package:gg_is_github/gg_is_github.dart';
 import 'package:gg_log/gg_log.dart';
 import 'package:gg_process/gg_process.dart';
 import 'package:gg_status_printer/gg_status_printer.dart';
@@ -578,7 +579,7 @@ void main() {
         _messages.add(' - $newErrorLinesString');
 
         // Print messages belonging to this error
-        if (printTestErrorDetails) {
+        if (printTestErrorDetails || isGitHub) {
           for (var message in previousMessagesBelongingToError) {
             _messages.add(brightBlack(message));
           }
