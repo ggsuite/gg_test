@@ -12,7 +12,7 @@
       "program": "${workspaceFolder}/bin/gg_test.dart",
       "args": ["tests"],
       "console": "debugConsole",
-      "cwd": "${workspaceFolder}/../gg_router"
+      "cwd": "${workspaceFolder}/../gg_args"
     },
     {
       "name": "Current File",

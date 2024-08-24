@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.19] - 2024-08-24
+
+### Changed
+
+- Disabled error details when running tests
+
 ## [1.0.18] - 2024-06-21
 
 ### Fixed
@@ -104,6 +110,7 @@
 
 - Initial version.
 
+[1.0.19]: https://github.com/inlavigo/gg_test/compare/1.0.18...1.0.19
 [1.0.18]: https://github.com/inlavigo/gg_test/compare/1.0.17...1.0.18
 [1.0.17]: https://github.com/inlavigo/gg_test/compare/1.0.16...1.0.17
 [1.0.16]: https://github.com/inlavigo/gg_test/compare/1.0.15...1.0.16

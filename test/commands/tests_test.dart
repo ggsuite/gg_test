@@ -28,6 +28,7 @@ void main() {
     'absolute',
     'relative',
   ];
+  Tests.printTestErrorDetails = true;
 
   // ...........................................................................
   tearDown(() {

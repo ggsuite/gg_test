@@ -32,6 +32,9 @@ class Tests extends DirCommand<void> {
     this.processWrapper = const GgProcessWrapper(),
   }) : super(name: 'tests', description: 'Runs »dart test«.');
 
+  /// Use this switch to print error details when a test fails
+  static bool printTestErrorDetails = false;
+
   // ...........................................................................
   /// Executes the command
   @override
@@ -575,8 +578,10 @@ void main() {
         _messages.add(' - $newErrorLinesString');
 
         // Print messages belonging to this error
-        for (var message in previousMessagesBelongingToError) {
-          _messages.add(brightBlack(message));
+        if (printTestErrorDetails) {
+          for (var message in previousMessagesBelongingToError) {
+            _messages.add(brightBlack(message));
+          }
         }
 
         isError = false;
