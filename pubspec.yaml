@@ -1,6 +1,6 @@
 name: gg_test
 description: gg_test is a powerful testing package designed to enhance the Flutter and Dart development experience.
-version: 1.1.1
+version: 1.1.2
 repository: https://github.com/inlavigo/gg_test.git
 
 environment:
