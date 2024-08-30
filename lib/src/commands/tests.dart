@@ -483,12 +483,12 @@ void main() {
   ) {
     final result = files.where(
       (e) {
-        var key = e.$1.path;
-        if (Platform.isWindows) {
-          key = key.toLowerCase(); // coverage:ignore-line
-        }
-        if (report.containsKey(key)) {
-          return false;
+        for (final reportItem in report.keys) {
+          var key = e.$1.path;
+
+          if (reportItem.toLowerCase() == key.toLowerCase()) {
+            return false;
+          }
         }
 
         final fileContent = File(e.$1.path).readAsStringSync();
