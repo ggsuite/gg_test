@@ -4,6 +4,10 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
+import 'dart:io';
+
+import 'package:gg_test/gg_test.dart';
+
 /// Reads error information from a given error string.
 class ErrorInfoReader {
   /// Returns all Vscode formatted error lines from the given error string.
@@ -37,8 +41,10 @@ class ErrorInfoReader {
   List<String> _extractErrorLines(String message) {
     // Regular expression to match file paths and line numbers
     // RegExp exp = RegExp(r'[\/\w]+\.dart[\s:]*\d+:\d+');
-    final exp = RegExp(r'[\/\w]+\.dart(?:[\s:]*\d+:\d+)?');
-    final matches = exp.allMatches(message);
+    final exp = Platform.pathSeparator == r'\'
+        ? RegExp(r'[\\\w]+\.dart(?:[\s:]*\d+:\d+)?')
+        : RegExp(r'[\/\w]+\.dart(?:[\s:]*\d+:\d+)?');
+    final matches = exp.allMatches(message.os);
     final result = <String>[];
 
     if (matches.isEmpty) {
@@ -65,6 +71,6 @@ class ErrorInfoReader {
     var lineNumber = parts[1];
     var columnNumber = parts[2];
 
-    return '$filePath:$lineNumber:$columnNumber';
+    return '$filePath:$lineNumber:$columnNumber'.os;
   }
 }

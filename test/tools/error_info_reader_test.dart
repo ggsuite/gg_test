@@ -4,7 +4,7 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
-import 'package:gg_test/src/tools/error_info_reader.dart';
+import 'package:gg_test/gg_test.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -22,12 +22,12 @@ void main() {
       group('a list of vscode compatible error lines,', () {
         test('for dart analyze output', () {
           final result = errorInfoReader.filePathes(dartAnalyzeOutput);
-          expect(result, ['lib/src/tools/error_lines.dart:7:14']);
+          expect(result, ['lib/src/tools/error_lines.dart:7:14'.os]);
         });
 
         test('for dart format output', () {
           final result = errorInfoReader.filePathes(dartFormatOutput);
-          expect(result, ['sub/test1.dart', 'test.dart']);
+          expect(result, ['sub/test1.dart'.os, 'test.dart']);
         });
       });
     });

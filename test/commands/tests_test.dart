@@ -39,9 +39,15 @@ void main() {
   // ...........................................................................
   Future<void> initSampleProject() async {
     final src = Directory(join('sample_project'));
-    sampleProject = Directory('${d.path}/sample_project');
+    sampleProject = Directory(join(d.path, 'sample_project'));
 
-    final r = await Process.run('cp', ['-r', src.path, sampleProject.path]);
+    final r = Platform.isWindows
+        ? await Process.run(
+            'xcopy',
+            [src.path, sampleProject.path, '/E', '/I', '/H'],
+          )
+        : await Process.run('cp', ['-r', src.path, sampleProject.path]);
+
     expect(r.exitCode, 0);
     expect(await sampleProject.exists(), isTrue);
 
@@ -60,7 +66,7 @@ void main() {
   // ...........................................................................
   Future<void> initDirs() async {
     tmp = Directory.systemTemp.createTempSync('test_');
-    d = Directory('${tmp.path}/test');
+    d = Directory(join(tmp.path, 'test'));
     await d.create();
   }
 
@@ -106,8 +112,10 @@ void main() {
   // ...........................................................................
   tearDown(
     () async {
-      await d.delete(recursive: true);
-      await tmp.delete();
+      try {
+        await d.delete(recursive: true);
+        await tmp.delete();
+      } catch (_) {}
       messages.clear();
     },
   );
@@ -148,13 +156,13 @@ void main() {
                 expect(messages[1], contains('❌ Running "dart test"'));
 
                 expect(
-                  messages[2],
-                  contains(red('test/simple_base_test.dart')),
+                  messages[2].os,
+                  contains(red('test/simple_base_test.dart'.os)),
                 );
 
                 expect(
-                  messages[2],
-                  contains(brightBlack('lib/src/simple_base.dart')),
+                  messages[2].os,
+                  contains(brightBlack('lib/src/simple_base.dart'.os)),
                 );
               },
             );
@@ -206,16 +214,16 @@ void main() {
               );
 
               expect(
-                messages[2],
+                messages[2].os,
                 contains(
-                  red('test/simple_base_test.dart'),
+                  red('test/simple_base_test.dart'.os),
                 ),
               );
 
               expect(
-                messages[2],
+                messages[2].os,
                 contains(
-                  blue('lib/src/simple_base.dart'),
+                  blue('lib/src/simple_base.dart'.os),
                 ),
               );
             });
@@ -247,18 +255,18 @@ void main() {
               expect(messages[1], contains('❌ Running "dart test"'));
 
               expect(
-                messages[2],
+                messages[2].os,
                 contains(yellow('Coverage not 100%. Untested code:')),
               );
 
               expect(
-                messages[2],
-                contains('- ${red('lib/src/simple_base.dart:8')}'),
+                messages[2].os,
+                contains('- ${red('lib/src/simple_base.dart:8'.os)}'),
               );
 
               expect(
-                messages[2],
-                contains('  ${blue('test/simple_base_test.dart')}'),
+                messages[2].os,
+                contains('  ${blue('test/simple_base_test.dart'.os)}'),
               );
             });
 
@@ -290,14 +298,14 @@ void main() {
               expect(messages[1], contains('❌ Running "dart test"'));
               expect(
                 messages[2],
-                contains(red('./test/simple_base_test.dart:17:7')),
+                contains(red('./test/simple_base_test.dart:17:7'.os)),
               );
               expect(
-                messages[2],
+                messages[2].os,
                 contains('Expected: <2>'),
               );
               expect(
-                messages[2],
+                messages[2].os,
                 contains('Actual: <1>'),
               );
             });
@@ -365,7 +373,7 @@ void main() {
   });
 }
 
-const flutterLcovReport = '''
+final flutterLcovReport = '''
 SF:lib/src/simple_base.dart
 DA:5,1
 LF:1
@@ -381,4 +389,5 @@ DA:7,1
 LF:1
 LH:1
 end_of_record
-''';
+'''
+    .os;

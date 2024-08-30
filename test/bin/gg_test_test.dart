@@ -6,6 +6,7 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -15,13 +16,13 @@ void main() {
     test('should be executable', () async {
       // Execute bin/gg_test.dart and check if it prints help
       final result = await Process.run(
-        './bin/gg_test.dart',
-        ['--help'],
+        'dart',
+        [join('.', 'bin', 'gg_test.dart'), '--help'],
       );
 
       final expectedMessages = [
-        'Execute tests with coverage',
-        'Runs »dart test«',
+        'Execute tests with coverage.',
+        'dart test',
       ];
 
       final stdout = result.stdout as String;

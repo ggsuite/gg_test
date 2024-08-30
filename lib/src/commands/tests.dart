@@ -5,6 +5,7 @@
 // found in the LICENSE file in the root of this package.
 
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:gg_args/gg_args.dart';
@@ -101,7 +102,13 @@ class Tests extends DirCommand<void> {
   // ...........................................................................
   List<String> _extractErrorLines(String message) {
     // Regular expression to match file paths and line numbers
-    RegExp exp = RegExp(r'test\/[\/\w]+\.dart[\s:]*\d+:\d+');
+
+    // coverage:ignore-start
+    RegExp exp = Platform.pathSeparator == r'\'
+        ? RegExp(r'test\\[\\\w]+\.dart[\s:]*\d+:\d+')
+        : RegExp(r'test\/[\/\w]+\.dart[\s:]*\d+:\d+');
+    // coverage:ignore-end
+
     final matches = exp.allMatches(message);
     final result = <String>[];
 
@@ -119,8 +126,8 @@ class Tests extends DirCommand<void> {
 
   // ...........................................................................
   String _addDotSlash(String relativeFile) {
-    if (!relativeFile.startsWith('./')) {
-      return './$relativeFile';
+    if (!relativeFile.startsWith('./'.os)) {
+      return './$relativeFile'.os;
     }
     return relativeFile;
   }
@@ -147,10 +154,11 @@ class Tests extends DirCommand<void> {
 
     // Collect coverage data
     for (final coverageFile in relativeCoverageFiles) {
-      final testFile =
-          coverageFile.replaceAll('.vm.json', '').replaceAll('coverage/', '');
+      final testFile = coverageFile
+          .replaceAll('.vm.json', '')
+          .replaceAll('coverage/'.os, '');
       var implementationFile = testFile
-          .replaceAll('test/', 'lib/src/')
+          .replaceAll('test/'.os, 'lib/src/'.os)
           .replaceAll('_test.dart', '.dart');
 
       final implementationFileExists =
@@ -162,17 +170,20 @@ class Tests extends DirCommand<void> {
       }
 
       final implementationFileWithoutLib =
-          implementationFile.replaceAll('lib/', '');
+          implementationFile.replaceAll('lib/'.os, '');
 
       final fileContent = File(join(dir.path, coverageFile)).readAsStringSync();
       final coverageData = jsonDecode(fileContent);
 
       // Iterate coverage data
       final entries = coverageData['coverage'] as List<dynamic>;
-      final entriesForImplementationFile = entries.where((entry) {
+      final entriesForImplementationFile = <dynamic>[];
+      for (final entry in entries) {
         final source = entry['source'] as String;
-        return (source.contains(implementationFileWithoutLib));
-      });
+        if (source.os.contains(implementationFileWithoutLib)) {
+          entriesForImplementationFile.add(entry);
+        }
+      }
 
       // Write data for implementation file
       implementationFile = join(dir.path, implementationFile);
@@ -222,7 +233,7 @@ class Tests extends DirCommand<void> {
     for (final line in lines) {
       // Read script
       if (line.startsWith('SF:')) {
-        final script = './${line.replaceFirst('SF:', '')}';
+        final script = './${line.replaceFirst('SF:', '')}'.os;
         final scriptAbsolute = canonicalize(join(dir.path, script));
         summaryForScript = {};
         final key = dir.path.startsWith('.') ? script : scriptAbsolute;
@@ -272,7 +283,8 @@ class Tests extends DirCommand<void> {
     final lines = File(script).readAsLinesSync();
     final ignoredLines = List<bool>.filled(lines.length + 1, false);
 
-    final isThisScript = script.contains('lib/src/commands/check/tests.dart');
+    final isThisScript =
+        script.contains('lib/src/commands/check/tests.dart'.os);
 
     // Evaluate ignore start/end
     var ignoreStart = false;
@@ -327,7 +339,7 @@ class Tests extends DirCommand<void> {
   void _printMissingLines(_MissingLines missingLines, Directory dir) {
     for (final script in missingLines.keys) {
       final testFile = script
-          .replaceFirst('lib/src', 'test')
+          .replaceFirst('lib/src'.os, 'test')
           .replaceAll('.dart', '_test.dart');
 
       final relativeTestFile = relative(testFile, from: dir.path);
@@ -374,7 +386,7 @@ class Tests extends DirCommand<void> {
 
     final result = implementationFiles.map((implementationFile) {
       final testFile = implementationFile.path
-          .replaceAll('lib/src/', 'test/')
+          .replaceAll('lib/src/'.os, 'test/'.os)
           .replaceAll('.dart', '_test.dart');
 
       return (implementationFile, File(testFile));
@@ -472,7 +484,7 @@ void main() {
   ) {
     final result = files.where(
       (e) {
-        if (report.containsKey(e.$1.path)) {
+        if (report.containsKey(e.$1.path.toLowerCase())) {
           return false;
         }
 
@@ -597,7 +609,7 @@ void main() {
 
     // Execute flutter tests
     var process = await processWrapper.start(
-      'flutter',
+      Platform.isWindows ? 'flutter.bat' : 'flutter',
       [
         'test',
         '--coverage',
