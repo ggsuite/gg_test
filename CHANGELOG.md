@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Make unit tests work on Mac
+
 ## [1.0.20] - 2024-08-24
 
 ### Changed
@@ -116,6 +122,7 @@
 
 - Initial version.
 
+[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.0.20...HEAD
 [1.0.20]: https://github.com/inlavigo/gg_test/compare/1.0.19...1.0.20
 [1.0.19]: https://github.com/inlavigo/gg_test/compare/1.0.18...1.0.19
 [1.0.18]: https://github.com/inlavigo/gg_test/compare/1.0.17...1.0.18

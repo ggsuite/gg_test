@@ -40,10 +40,12 @@ class ErrorInfoReader {
   // ...........................................................................
   List<String> _extractErrorLines(String message) {
     // Regular expression to match file paths and line numbers
-    // RegExp exp = RegExp(r'[\/\w]+\.dart[\s:]*\d+:\d+');
+
+    // coverage:ignore-start
     final exp = Platform.pathSeparator == r'\'
         ? RegExp(r'[\\\w]+\.dart(?:[\s:]*\d+:\d+)?')
         : RegExp(r'[\/\w]+\.dart(?:[\s:]*\d+:\d+)?');
+    // coverage:ignore-end
     final matches = exp.allMatches(message.os);
     final result = <String>[];
 

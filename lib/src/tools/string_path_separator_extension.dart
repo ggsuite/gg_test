@@ -8,8 +8,15 @@ import 'dart:io';
 
 /// Adds an .os method to strings to turn / into the platform path separator
 extension GgTestStringPathSeparatorExtensions on String {
+  /// Overwrite this separator for testing purposes
+  static String? nextTestSeparator;
+
   /// Replaces all slashes by the os path separator
-  String get os => Platform.pathSeparator == '/'
-      ? this
-      : replaceAll('/', Platform.pathSeparator);
+  String get os {
+    // coverage:ignore-start
+    final s = nextTestSeparator ?? Platform.pathSeparator;
+    // coverage:ignore-end
+    nextTestSeparator = null;
+    return s == '/' ? replaceAll(r'\', s) : replaceAll('/', s);
+  }
 }

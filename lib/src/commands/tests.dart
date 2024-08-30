@@ -5,7 +5,6 @@
 // found in the LICENSE file in the root of this package.
 
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:gg_args/gg_args.dart';
@@ -484,7 +483,11 @@ void main() {
   ) {
     final result = files.where(
       (e) {
-        if (report.containsKey(e.$1.path.toLowerCase())) {
+        var key = e.$1.path;
+        if (Platform.isWindows) {
+          key = key.toLowerCase(); // coverage:ignore-line
+        }
+        if (report.containsKey(key)) {
           return false;
         }
 
