@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Don't expect tests for l10n folders
+
 ## [1.1.1] - 2024-08-30
 
 ### Changed
@@ -128,6 +134,7 @@
 
 - Initial version.
 
+[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.1.1...HEAD
 [1.1.1]: https://github.com/inlavigo/gg_test/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/inlavigo/gg_test/compare/1.0.20...1.1.0
 [1.0.20]: https://github.com/inlavigo/gg_test/compare/1.0.19...1.0.20
