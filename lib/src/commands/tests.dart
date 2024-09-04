@@ -36,6 +36,11 @@ class Tests extends DirCommand<void> {
   /// Use this switch to print error details when a test fails
   static bool printTestErrorDetails = false;
 
+  /// Pathes that will be excluded vom coverage
+  static final foldersExcludedFromCoverage = [
+    'l10n',
+  ];
+
   // ...........................................................................
   /// Executes the command
   @override
@@ -214,6 +219,16 @@ class Tests extends DirCommand<void> {
   }
 
   // ...........................................................................
+  bool _isExcludedFromCoverage(String path) {
+    for (final excludedFolder in foldersExcludedFromCoverage) {
+      if (path.contains('/$excludedFolder/'.os)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ...........................................................................
   _Report _generateFlutterReport(Directory dir) {
     // Iterate all 'lcov' files within coverage directory
     final coverageFile = File(
@@ -225,6 +240,7 @@ class Tests extends DirCommand<void> {
 
     // Prepare report for file
     late Map<int, int> summaryForScript;
+    var isExcluded = false;
 
     final fileContent = coverageFile.readAsStringSync();
     final lines = fileContent.split('\n');
@@ -233,7 +249,9 @@ class Tests extends DirCommand<void> {
       // Read script
       if (line.startsWith('SF:')) {
         final script = './${line.replaceFirst('SF:', '')}'.os;
+        isExcluded = _isExcludedFromCoverage(script);
         final scriptAbsolute = canonicalize(join(dir.path, script));
+
         summaryForScript = {};
         final key = dir.path.startsWith('.') ? script : scriptAbsolute;
         result[key] = summaryForScript;
@@ -242,7 +260,7 @@ class Tests extends DirCommand<void> {
       else if (line.startsWith('DA:')) {
         final parts = line.replaceFirst('DA:', '').split(',');
         final lineNumber = int.parse(parts[0]);
-        final hits = int.parse(parts[1]);
+        final hits = isExcluded ? 1 : int.parse(parts[1]);
         summaryForScript[lineNumber] = hits;
       }
     }
@@ -273,17 +291,19 @@ class Tests extends DirCommand<void> {
   final Map<String, List<bool>> _ignoredLinesCache = {};
 
   // ...........................................................................
-  List<bool> _ignoredLines(String script) {
-    final cachedResult = _ignoredLinesCache[script];
+  List<bool> _ignoredLines(String scriptPath) {
+    final cachedResult = _ignoredLinesCache[scriptPath];
     if (cachedResult != null) {
       return cachedResult;
     }
 
-    final lines = File(script).readAsLinesSync();
+    final lines = File(scriptPath).readAsLinesSync();
     final ignoredLines = List<bool>.filled(lines.length + 1, false);
 
     final isThisScript =
-        script.contains('lib/src/commands/check/tests.dart'.os);
+        scriptPath.contains('lib/src/commands/check/tests.dart'.os);
+
+    final isExcludedFromCoverage = _isExcludedFromCoverage(scriptPath);
 
     // Evaluate ignore start/end
     var ignoreStart = false;
@@ -292,7 +312,8 @@ class Tests extends DirCommand<void> {
       var lineNumber = i + 1;
 
       // Whole file ignored?
-      if (!isThisScript && line.contains('coverage:ignore-file')) {
+      if (!isThisScript &&
+          (line.contains('coverage:ignore-file') || isExcludedFromCoverage)) {
         ignoredLines.fillRange(0, lines.length + 1, true);
         break;
       }
@@ -311,7 +332,7 @@ class Tests extends DirCommand<void> {
       ignoredLines[lineNumber] = ignoreStart || ignoreLine;
     }
 
-    _ignoredLinesCache[script] = ignoredLines;
+    _ignoredLinesCache[scriptPath] = ignoredLines;
     return ignoredLines;
   }
 
