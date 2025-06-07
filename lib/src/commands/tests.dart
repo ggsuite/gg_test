@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:gg_args/gg_args.dart';
 import 'package:gg_console_colors/gg_console_colors.dart';
 import 'package:gg_is_flutter/gg_is_flutter.dart';
-import 'package:gg_is_github/gg_is_github.dart';
 import 'package:gg_log/gg_log.dart';
 import 'package:gg_process/gg_process.dart';
 import 'package:gg_status_printer/gg_status_printer.dart';
@@ -33,9 +32,6 @@ class Tests extends DirCommand<void> {
     this.processWrapper = const GgProcessWrapper(),
   }) : super(name: 'tests', description: 'Runs »dart test«.');
 
-  /// Use this switch to print error details when a test fails
-  static bool printTestErrorDetails = false;
-
   /// Pathes that will be excluded vom coverage
   static final foldersExcludedFromCoverage = [
     'l10n',
@@ -54,8 +50,9 @@ class Tests extends DirCommand<void> {
     _coverageDir = Directory(join(directory.path, 'coverage'));
     _srcDir = Directory(join(directory.path, 'lib', 'src'));
     // Init status printer
+    final isFlutter = isFlutterDir(directory);
     final statusPrinter = GgStatusPrinter<void>(
-      message: isFlutterDir(directory)
+      message: isFlutter
           ? 'Running "flutter test --coverage"'
           : 'Running "dart test"',
       ggLog: ggLog,
@@ -76,8 +73,12 @@ class Tests extends DirCommand<void> {
     }
 
     if (code != 0) {
+      final command = green('${isFlutter ? 'flutter' : 'dart'} test');
       throw Exception(
-        '"dart test" failed. See log for details.',
+        [
+          'Tests failed',
+          yellow('Run "$command" to see details.'),
+        ].join('\n'),
       );
     }
   }
@@ -608,7 +609,6 @@ void main() {
       if (newErrorLines.isNotEmpty &&
           !errorLines.contains(newErrorLines.first)) {
         // Print error line
-
         final newErrorLinesString = red(
           _addDotSlash(
             newErrorLines.join(',\n   '),
@@ -617,10 +617,10 @@ void main() {
         _messages.add(' - $newErrorLinesString');
 
         // Print messages belonging to this error
-        if (printTestErrorDetails || isGitHub) {
-          for (var message in previousMessagesBelongingToError) {
-            _messages.add(brightBlack(message));
-          }
+        final cleanedMessage = ErrorInfoReader()
+            .cleanupTestErrors(previousMessagesBelongingToError);
+        for (var message in cleanedMessage) {
+          _messages.add(brightBlack(message));
         }
 
         isError = false;

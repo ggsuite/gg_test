@@ -28,7 +28,6 @@ void main() {
     'absolute',
     'relative',
   ];
-  Tests.printTestErrorDetails = true;
 
   // ...........................................................................
   tearDown(() {
@@ -141,13 +140,11 @@ void main() {
                 await expectLater(
                   runner.run(['tests', '--input', input()]),
                   throwsA(
-                    isA<Exception>().having(
-                      (e) => e.toString(),
-                      'message',
-                      contains(
-                        'Exception: "dart test" failed. See log for details.',
-                      ),
-                    ),
+                    isA<Exception>()
+                        .having((e) => e.toString().split('\n'), 'message', [
+                      'Exception: Tests failed',
+                      yellow('Run "${green('dart test')}" to see details.'),
+                    ]),
                   ),
                 );
 
@@ -192,11 +189,12 @@ void main() {
                 runner.run(['tests', '--input', input()]),
                 throwsA(
                   isA<Exception>().having(
-                    (e) => e.toString(),
+                    (e) => e.toString().split('\n'),
                     'message',
-                    contains(
-                      'Exception: "dart test" failed. See log for details.',
-                    ),
+                    [
+                      'Exception: Tests failed',
+                      yellow('Run "${green('dart test')}" to see details.'),
+                    ],
                   ),
                 ),
               );
@@ -241,13 +239,11 @@ void main() {
               await expectLater(
                 runner.run(['tests', '--input', input()]),
                 throwsA(
-                  isA<Exception>().having(
-                    (e) => e.toString(),
-                    'message',
-                    contains(
-                      'Exception: "dart test" failed. See log for details.',
-                    ),
-                  ),
+                  isA<Exception>()
+                      .having((e) => e.toString().split('\n'), 'message', [
+                    'Exception: Tests failed',
+                    yellow('Run "${green('dart test')}" to see details.'),
+                  ]),
                 ),
               );
 
@@ -284,11 +280,12 @@ void main() {
                 runner.run(['tests', '--input', input()]),
                 throwsA(
                   isA<Exception>().having(
-                    (e) => e.toString(),
+                    (e) => e.toString().split('\n'),
                     'message',
-                    contains(
-                      'Exception: "dart test" failed. See log for details.',
-                    ),
+                    [
+                      'Exception: Tests failed',
+                      yellow('Run "${green('dart test')}" to see details.'),
+                    ],
                   ),
                 ),
               );

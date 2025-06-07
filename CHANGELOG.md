@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Output details about test errors
+
 ## [1.1.3] - 2024-09-04
 
 ### Changed
@@ -140,6 +146,7 @@
 
 - Initial version.
 
+[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.1.3...HEAD
 [1.1.3]: https://github.com/inlavigo/gg_test/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/inlavigo/gg_test/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/inlavigo/gg_test/compare/1.1.0...1.1.1

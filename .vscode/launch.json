@@ -12,7 +12,7 @@
       "program": "${workspaceFolder}/bin/gg_test.dart",
       "args": ["tests"],
       "console": "debugConsole",
-      "cwd": "/Users/gatzsche/dev_carat/ds_data_hub_app"
+      "cwd": "{workspaceFolder}"
     },
     {
       "name": "Current File",

@@ -32,6 +32,27 @@ void main() {
       });
     });
   });
+
+  group('cleanupTestErrors', () {
+    test('removes not needed information from error strings', () {
+      final message = [
+        '00:00 +0: test/gg_console_colors_test.dart: GgConsoleColors() Please remove this test',
+        '00:00 +0 -1: test/vscode/launch_json_test.dart: .vscode/launch.json pathes in launch.json',
+        '  Some stupid error',
+        '  package:matcher                        fail',
+        '  test/gg_console_colors_test.dart:13:7  main.<fn>.<fn>',
+        '  ',
+        '00:00 +1 -1: test/gg_console_colors_test.dart: GgConsoleColors() printExample() should print a list of example colors',
+        '00:00 +2 -1: test/gg_console_colors_test.dart: GgConsoleColors() printExample() should reset colors to the outer one',
+        '00:00 +3 -1: Some tests failed.',
+      ];
+
+      final cleaned = ErrorInfoReader().cleanupTestErrors(message);
+      expect(cleaned, [
+        '  Some stupid error',
+      ]);
+    });
+  });
 }
 
 // .............................................................................
