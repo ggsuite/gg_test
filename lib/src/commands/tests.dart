@@ -27,23 +27,16 @@ typedef _TaskResult = (int, List<String>, List<String>);
 /// Runs dart test on the source code
 class Tests extends DirCommand<void> {
   /// Constructor
-  Tests({
-    required super.ggLog,
-    this.processWrapper = const GgProcessWrapper(),
-  }) : super(name: 'tests', description: 'Runs »dart test«.');
+  Tests({required super.ggLog, this.processWrapper = const GgProcessWrapper()})
+    : super(name: 'tests', description: 'Runs »dart test«.');
 
   /// Pathes that will be excluded vom coverage
-  static final foldersExcludedFromCoverage = [
-    'l10n',
-  ];
+  static final foldersExcludedFromCoverage = ['l10n'];
 
   // ...........................................................................
   /// Executes the command
   @override
-  Future<void> get({
-    required Directory directory,
-    required GgLog ggLog,
-  }) async {
+  Future<void> get({required Directory directory, required GgLog ggLog}) async {
     await check(directory: directory);
 
     // Save directories
@@ -65,20 +58,18 @@ class Tests extends DirCommand<void> {
     final (code, messages, errors) = result;
     final success = code == 0;
 
-    statusPrinter.status =
-        success ? GgStatusPrinterStatus.success : GgStatusPrinterStatus.error;
+    statusPrinter.status = success
+        ? GgStatusPrinterStatus.success
+        : GgStatusPrinterStatus.error;
 
     if (!success) {
       _logErrors(messages, errors);
     }
 
     if (code != 0) {
-      final command = green('${isFlutter ? 'flutter' : 'dart'} test');
+      final command = blue('${isFlutter ? 'flutter' : 'dart'} test');
       throw Exception(
-        [
-          'Tests failed',
-          yellow('Run "$command" to see details.'),
-        ].join('\n'),
+        ['Tests failed', yellow('Run "$command" to see details.')].join('\n'),
       );
     }
   }
@@ -137,7 +128,7 @@ class Tests extends DirCommand<void> {
     return relativeFile;
   }
 
-// .............................................................................
+  // ..........................................................................
   _Report _generateReport(Directory dir) {
     return isFlutter ? _generateFlutterReport(dir) : _generateDartReport(dir);
   }
@@ -145,10 +136,13 @@ class Tests extends DirCommand<void> {
   // ...........................................................................
   _Report _generateDartReport(Directory dir) {
     // Iterate all 'dart.vm.json' files within coverage directory
-    final coverageFiles =
-        _coverageDir.listSync(recursive: true).whereType<File>().where((file) {
-      return file.path.endsWith('dart.vm.json');
-    }).toList();
+    final coverageFiles = _coverageDir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) {
+          return file.path.endsWith('dart.vm.json');
+        })
+        .toList();
 
     final relativeCoverageFiles = coverageFiles.map((file) {
       return relative(file.path, from: dir.path);
@@ -166,16 +160,19 @@ class Tests extends DirCommand<void> {
           .replaceAll('test/'.os, 'lib/src/'.os)
           .replaceAll('_test.dart', '.dart');
 
-      final implementationFileExists =
-          File(join(dir.path, implementationFile)).existsSync();
+      final implementationFileExists = File(
+        join(dir.path, implementationFile),
+      ).existsSync();
 
       // Workaround: In some cases dart tests adds old coverage files
       if (!implementationFileExists) {
         continue;
       }
 
-      final implementationFileWithoutLib =
-          implementationFile.replaceAll('lib/'.os, '');
+      final implementationFileWithoutLib = implementationFile.replaceAll(
+        'lib/'.os,
+        '',
+      );
 
       final fileContent = File(join(dir.path, coverageFile)).readAsStringSync();
       final coverageData = jsonDecode(fileContent);
@@ -232,9 +229,7 @@ class Tests extends DirCommand<void> {
   // ...........................................................................
   _Report _generateFlutterReport(Directory dir) {
     // Iterate all 'lcov' files within coverage directory
-    final coverageFile = File(
-      join(dir.path, 'coverage', 'lcov.info'),
-    );
+    final coverageFile = File(join(dir.path, 'coverage', 'lcov.info'));
 
     // Prepare resultsh
     final result = _Report();
@@ -301,8 +296,9 @@ class Tests extends DirCommand<void> {
     final lines = File(scriptPath).readAsLinesSync();
     final ignoredLines = List<bool>.filled(lines.length + 1, false);
 
-    final isThisScript =
-        scriptPath.contains('lib/src/commands/check/tests.dart'.os);
+    final isThisScript = scriptPath.contains(
+      'lib/src/commands/check/tests.dart'.os,
+    );
 
     final isExcludedFromCoverage = _isExcludedFromCoverage(scriptPath);
 
@@ -400,12 +396,15 @@ class Tests extends DirCommand<void> {
   // ...........................................................................
   Iterable<(File, File)> _implementationAndTestFiles() {
     // Get all implementation files
-    final implementationFiles =
-        _srcDir.listSync(recursive: true).whereType<File>().where((file) {
-      return file.path.endsWith('.dart') &&
-          !file.path.endsWith('.g.dart') &&
-          !file.path.contains('l10n');
-    }).toList();
+    final implementationFiles = _srcDir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) {
+          return file.path.endsWith('.dart') &&
+              !file.path.endsWith('.g.dart') &&
+              !file.path.contains('l10n');
+        })
+        .toList();
 
     final result = implementationFiles.map((implementationFile) {
       final testFile = implementationFile.path
@@ -418,15 +417,12 @@ class Tests extends DirCommand<void> {
     return result;
   }
 
-// .............................................................................
+  // ..........................................................................
   Iterable<(File, File)> _collectMissingTestFiles(
     Iterable<(File, File)> files,
-  ) =>
-      files.where(
-        (e) => !e.$2.existsSync(),
-      );
+  ) => files.where((e) => !e.$2.existsSync());
 
-// .............................................................................
+  // ...........................................................................
   static const _testBoilerplate = '''
 // @license
 // Copyright (c) 2019 - 2024 Dr. Gabriel Gatzsche. All Rights Reserved.
@@ -448,17 +444,13 @@ void main() {
 }
 ''';
 
-// .............................................................................
+  // ...........................................................................
   void _createMissingTestFiles(
     Iterable<(File, File)> missingFiles,
     Directory dir,
   ) {
     // Create missing test files and ask user to edit it
-    _messages.add(
-      yellow(
-        'Tests were created. Please revise:',
-      ),
-    );
+    _messages.add(yellow('Tests were created. Please revise:'));
     final packageName = basename(canonicalize(dir.path));
 
     for (final (implementationFile, testFile) in missingFiles) {
@@ -467,8 +459,9 @@ void main() {
       Directory(testFileDir).createSync(recursive: true);
 
       // Write boilerplate
-      final className =
-          basenameWithoutExtension(implementationFile.path).pascalCase;
+      final className = basenameWithoutExtension(
+        implementationFile.path,
+      ).pascalCase;
 
       final classNameCamelCase = className.camelCase;
 
@@ -489,10 +482,7 @@ void main() {
       testFile.writeAsStringSync(boilerplate);
       final relativeTestFile = red(relative(testFile.path, from: dir.path));
       final relativeSrcFile = brightBlack(
-        relative(
-          implementationFile.path,
-          from: dir.path,
-        ),
+        relative(implementationFile.path, from: dir.path),
       );
 
       // Print message
@@ -505,42 +495,37 @@ void main() {
     _Report report,
     Iterable<(File, File)> files,
   ) {
-    final result = files.where(
-      (e) {
-        for (final reportItem in report.keys) {
-          var key = e.$1.path;
+    final result = files.where((e) {
+      for (final reportItem in report.keys) {
+        var key = e.$1.path;
 
-          if (reportItem.toLowerCase() == key.toLowerCase()) {
-            return false;
-          }
+        if (reportItem.toLowerCase() == key.toLowerCase()) {
+          return false;
         }
+      }
 
-        final fileContent = File(e.$1.path).readAsStringSync();
+      final fileContent = File(e.$1.path).readAsStringSync();
 
-        // Ignore coverage file
-        bool ignoreMissingCoverage =
-            // - if ignore file comment is found
-            fileContent.contains('coverage:ignore-file') ||
+      // Ignore coverage file
+      bool ignoreMissingCoverage =
+          // - if ignore file comment is found
+          fileContent.contains('coverage:ignore-file') ||
+          // - if the file contains no functions
+          !hasFunctions(fileContent);
 
-                // - if the file contains no functions
-                !hasFunctions(fileContent);
-
-        return !ignoreMissingCoverage;
-      },
-    ).toList();
+      return !ignoreMissingCoverage;
+    }).toList();
 
     return result;
   }
 
   // ...........................................................................
-  void _printUntestedFiles(
-    Iterable<(File, File)> files,
-    Directory dir,
-  ) {
+  void _printUntestedFiles(Iterable<(File, File)> files, Directory dir) {
     for (final tuple in files) {
       final (implementation, test) = tuple;
-      final srcFileRelative =
-          blue(relative(implementation.path, from: dir.path));
+      final srcFileRelative = blue(
+        relative(implementation.path, from: dir.path),
+      );
       final testFileRelative = red(relative(test.path, from: dir.path));
 
       _messages.add('- $testFileRelative');
@@ -565,19 +550,15 @@ void main() {
     var previousMessagesBelongingToError = <String>[];
     var isError = false;
 
-    var process = await processWrapper.start(
-      'dart',
-      [
-        'test',
-        '-r',
-        'expanded',
-        '--coverage',
-        'coverage',
-        '--chain-stack-traces',
-        '--no-color',
-      ],
-      workingDirectory: dir.path,
-    );
+    var process = await processWrapper.start('dart', [
+      'test',
+      '-r',
+      'expanded',
+      '--coverage',
+      'coverage',
+      '--chain-stack-traces',
+      '--no-color',
+    ], workingDirectory: dir.path);
 
     // Iterate over stdout and print output using a for loop
     await _processTestOutput(
@@ -610,15 +591,14 @@ void main() {
           !errorLines.contains(newErrorLines.first)) {
         // Print error line
         final newErrorLinesString = red(
-          _addDotSlash(
-            newErrorLines.join(',\n   '),
-          ),
+          _addDotSlash(newErrorLines.join(',\n   ')),
         );
         _messages.add(' - $newErrorLinesString');
 
         // Print messages belonging to this error
-        final cleanedMessage = ErrorInfoReader()
-            .cleanupTestErrors(previousMessagesBelongingToError);
+        final cleanedMessage = ErrorInfoReader().cleanupTestErrors(
+          previousMessagesBelongingToError,
+        );
         for (var message in cleanedMessage) {
           _messages.add(brightBlack(message));
         }
@@ -636,12 +616,7 @@ void main() {
     // Execute flutter tests
     var process = await processWrapper.start(
       Platform.isWindows ? 'flutter.bat' : 'flutter',
-      [
-        'test',
-        '--coverage',
-        '-r',
-        'expanded',
-      ],
+      ['test', '--coverage', '-r', 'expanded'],
       workingDirectory: dir.path,
     );
 
@@ -687,11 +662,7 @@ void main() {
     // Estimate untested files
     final untestedFiles = _findUntestedFiles(report, files);
     if (untestedFiles.isNotEmpty) {
-      _messages.add(
-        yellow(
-          'Please add valid tests to the following files:',
-        ),
-      );
+      _messages.add(yellow('Please add valid tests to the following files:'));
       _printUntestedFiles(untestedFiles, dir);
       return (1, _messages, _errors);
     }
@@ -704,15 +675,12 @@ void main() {
     // Check coverage percentage
     if (percentage != 100.0) {
       // Print percentage
-      _messages.add(
-        yellow(
-          'Coverage not 100%. Untested code:',
-        ),
-      );
+      _messages.add(yellow('Coverage not 100%. Untested code:'));
 
       // Print missing lines
-      final missingLines =
-          percentage < 100.0 ? _estimateMissingLines(report) : _MissingLines();
+      final missingLines = percentage < 100.0
+          ? _estimateMissingLines(report)
+          : _MissingLines();
 
       _printMissingLines(missingLines, dir);
 

@@ -48,9 +48,7 @@ void main() {
       ];
 
       final cleaned = ErrorInfoReader().cleanupTestErrors(message);
-      expect(cleaned, [
-        '  Some stupid error',
-      ]);
+      expect(cleaned, ['  Some stupid error']);
     });
   });
 }

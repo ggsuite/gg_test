@@ -14,8 +14,7 @@ final RegExp _functionRegExp = RegExp(
   r'[^)]*' // Non-greedy match inside the parenthesis
   r'\)' // Closing parenthesis
   r'\s*' // Optional whitespace before body or arrow
-  r'(?:\=\>|\{)' // Match functions using either '=>' syntax or opening a block with '{'
-  ,
+  r'(?:\=\>|\{)', // Match functions using either '=>' syntax or opening a block with '{'
   multiLine: true,
   dotAll: true,
 );

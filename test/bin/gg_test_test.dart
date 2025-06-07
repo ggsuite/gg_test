@@ -15,15 +15,12 @@ void main() {
 
     test('should be executable', () async {
       // Execute bin/gg_test.dart and check if it prints help
-      final result = await Process.run(
-        'dart',
-        [join('.', 'bin', 'gg_test.dart'), '--help'],
-      );
+      final result = await Process.run('dart', [
+        join('.', 'bin', 'gg_test.dart'),
+        '--help',
+      ]);
 
-      final expectedMessages = [
-        'Execute tests with coverage.',
-        'dart test',
-      ];
+      final expectedMessages = ['Execute tests with coverage.', 'dart test'];
 
       final stdout = result.stdout as String;
 

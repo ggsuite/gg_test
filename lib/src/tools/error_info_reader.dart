@@ -36,13 +36,16 @@ class ErrorInfoReader {
   /// Removes unneccesary information from test output
   List<String> cleanupTestErrors(List<String> lines) {
     // Split all lines by \n and merge the result together
-    final splittedLines =
-        lines.map((line) => line.split('\n')).expand((lines) => lines).toList();
+    final splittedLines = lines
+        .map((line) => line.split('\n'))
+        .expand((lines) => lines)
+        .toList();
 
     // Remove 00:00 at the beginning of each line
     var result = splittedLines.where((line) {
       final additionalLines = RegExp(r'^\d\d:[\d:\s+-]+');
-      var isOk = !additionalLines.hasMatch(line) &&
+      var isOk =
+          !additionalLines.hasMatch(line) &&
           line.trim().isNotEmpty &&
           !line.startsWith(RegExp(r'\s*package:matcher'));
 

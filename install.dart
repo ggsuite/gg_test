@@ -18,10 +18,14 @@ void main() {
   const exe = 'gg_test';
 
   print('Installing $exe globally');
-  final result = Process.runSync(
-    'dart',
-    ['pub', 'global', 'activate', '--source', 'path', '.'],
-  );
+  final result = Process.runSync('dart', [
+    'pub',
+    'global',
+    'activate',
+    '--source',
+    'path',
+    '.',
+  ]);
 
   if (result.stderr.toString().trim().isNotEmpty) {
     print(red('❌ ${result.stderr.toString().trim()}'));

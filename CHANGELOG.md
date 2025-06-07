@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [1.1.4] - 2025-06-07
 
 ### Changed
 
 - Output details about test errors
+- Update to dart 2.8
 
 ## [1.1.3] - 2024-09-04
 
@@ -146,7 +147,7 @@
 
 - Initial version.
 
-[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.1.3...HEAD
+[1.1.4]: https://github.com/inlavigo/gg_test/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/inlavigo/gg_test/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/inlavigo/gg_test/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/inlavigo/gg_test/compare/1.1.0...1.1.1

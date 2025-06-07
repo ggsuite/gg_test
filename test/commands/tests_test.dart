@@ -24,10 +24,7 @@ void main() {
   late Tests testCmd;
   final messages = <String>[];
   late CommandRunner<void> runner;
-  const pathTypes = [
-    'absolute',
-    'relative',
-  ];
+  const pathTypes = ['absolute', 'relative'];
 
   // ...........................................................................
   tearDown(() {
@@ -41,23 +38,22 @@ void main() {
     sampleProject = Directory(join(d.path, 'sample_project'));
 
     final r = Platform.isWindows
-        ? await Process.run(
-            'xcopy',
-            [src.path, sampleProject.path, '/E', '/I', '/H'],
-          )
+        ? await Process.run('xcopy', [
+            src.path,
+            sampleProject.path,
+            '/E',
+            '/I',
+            '/H',
+          ])
         : await Process.run('cp', ['-r', src.path, sampleProject.path]);
 
     expect(r.exitCode, 0);
     expect(await sampleProject.exists(), isTrue);
 
-    srcFile = File(
-      join(sampleProject.path, 'lib', 'src', 'simple_base.dart'),
-    );
+    srcFile = File(join(sampleProject.path, 'lib', 'src', 'simple_base.dart'));
     expect(srcFile.existsSync(), isTrue);
 
-    testFile = File(
-      join(sampleProject.path, 'test', 'simple_base_test.dart'),
-    );
+    testFile = File(join(sampleProject.path, 'test', 'simple_base_test.dart'));
     expect(testFile.existsSync(), isTrue);
     testFileContent = await testFile.readAsString();
   }
@@ -79,11 +75,10 @@ void main() {
 
   // ...........................................................................
   Future<void> pubGet() async {
-    final r = await Process.run(
-      'dart',
-      ['pub', 'get'],
-      workingDirectory: join('sample_project'),
-    );
+    final r = await Process.run('dart', [
+      'pub',
+      'get',
+    ], workingDirectory: join('sample_project'));
     expect(r.exitCode, 0);
   }
 
@@ -95,29 +90,23 @@ void main() {
   }
 
   // ...........................................................................
-  setUpAll(
-    () async {
-      await pubGet();
-    },
-  );
+  setUpAll(() async {
+    await pubGet();
+  });
 
   // ...........................................................................
-  setUp(
-    () async {
-      await init();
-    },
-  );
+  setUp(() async {
+    await init();
+  });
 
   // ...........................................................................
-  tearDown(
-    () async {
-      try {
-        await d.delete(recursive: true);
-        await tmp.delete();
-      } catch (_) {}
-      messages.clear();
-    },
-  );
+  tearDown(() async {
+    try {
+      await d.delete(recursive: true);
+      await tmp.delete();
+    } catch (_) {}
+    messages.clear();
+  });
 
   // ...........................................................................
   group('Test', () {
@@ -142,9 +131,9 @@ void main() {
                   throwsA(
                     isA<Exception>()
                         .having((e) => e.toString().split('\n'), 'message', [
-                      'Exception: Tests failed',
-                      yellow('Run "${green('dart test')}" to see details.'),
-                    ]),
+                          'Exception: Tests failed',
+                          yellow('Run "${blue('dart test')}" to see details.'),
+                        ]),
                   ),
                 );
 
@@ -164,114 +153,105 @@ void main() {
               },
             );
 
-            test('if implementation files do not contain valid tests',
-                () async {
-              if (isRelative) Directory.current = sampleProject;
-              // Comment out tests in test file
-              final testFileWithoutTest = testFileContent
-                  .replaceAll(
-                    'expect',
-                    '// expect',
-                  )
-                  .replaceAll(
-                    'final awesome',
-                    '// final awesome',
-                  )
-                  .replaceAll(
-                    'import \'package:sample_project',
-                    '// import \'package:sample_project',
-                  );
+            test(
+              'if implementation files do not contain valid tests',
+              () async {
+                if (isRelative) Directory.current = sampleProject;
+                // Comment out tests in test file
+                final testFileWithoutTest = testFileContent
+                    .replaceAll('expect', '// expect')
+                    .replaceAll('final awesome', '// final awesome')
+                    .replaceAll(
+                      'import \'package:sample_project',
+                      '// import \'package:sample_project',
+                    );
 
-              await testFile.writeAsString(testFileWithoutTest);
+                await testFile.writeAsString(testFileWithoutTest);
 
-              // Run tests
-              await expectLater(
-                runner.run(['tests', '--input', input()]),
-                throwsA(
-                  isA<Exception>().having(
-                    (e) => e.toString().split('\n'),
-                    'message',
-                    [
-                      'Exception: Tests failed',
-                      yellow('Run "${green('dart test')}" to see details.'),
-                    ],
+                // Run tests
+                await expectLater(
+                  runner.run(['tests', '--input', input()]),
+                  throwsA(
+                    isA<Exception>()
+                        .having((e) => e.toString().split('\n'), 'message', [
+                          'Exception: Tests failed',
+                          yellow('Run "${blue('dart test')}" to see details.'),
+                        ]),
                   ),
-                ),
-              );
+                );
 
-              // Expect exception
-              expect(messages[0], contains('⌛️ Running "dart test"'));
-              expect(messages[1], contains('❌ Running "dart test"'));
-              expect(
-                messages[2],
-                contains(
-                  yellow(
-                    'Please add valid tests to the following files:',
+                // Expect exception
+                expect(messages[0], contains('⌛️ Running "dart test"'));
+                expect(messages[1], contains('❌ Running "dart test"'));
+                expect(
+                  messages[2],
+                  contains(
+                    yellow('Please add valid tests to the following files:'),
                   ),
-                ),
-              );
+                );
 
-              expect(
-                messages[2].os,
-                contains(
-                  red('test/simple_base_test.dart'.os),
-                ),
-              );
+                expect(
+                  messages[2].os,
+                  contains(red('test/simple_base_test.dart'.os)),
+                );
 
-              expect(
-                messages[2].os,
-                contains(
-                  blue('lib/src/simple_base.dart'.os),
-                ),
-              );
-            });
+                expect(
+                  messages[2].os,
+                  contains(blue('lib/src/simple_base.dart'.os)),
+                );
+              },
+            );
 
-            test('if there are uncovered lines in implementation file',
-                () async {
-              if (isRelative) Directory.current = sampleProject;
+            test(
+              'if there are uncovered lines in implementation file',
+              () async {
+                if (isRelative) Directory.current = sampleProject;
 
-              // Append some untested code to the implementation file
-              srcFile.writeAsStringSync(
-                '${srcFile.readAsStringSync()}\nvoid bar() => print("bar");',
-              );
+                // Append some untested code to the implementation file
+                srcFile.writeAsStringSync(
+                  '${srcFile.readAsStringSync()}\nvoid bar() => print("bar");',
+                );
 
-              // Run tests
-              await expectLater(
-                runner.run(['tests', '--input', input()]),
-                throwsA(
-                  isA<Exception>()
-                      .having((e) => e.toString().split('\n'), 'message', [
-                    'Exception: Tests failed',
-                    yellow('Run "${green('dart test')}" to see details.'),
-                  ]),
-                ),
-              );
+                // Run tests
+                await expectLater(
+                  runner.run(['tests', '--input', input()]),
+                  throwsA(
+                    isA<Exception>()
+                        .having((e) => e.toString().split('\n'), 'message', [
+                          'Exception: Tests failed',
+                          yellow('Run "${blue('dart test')}" to see details.'),
+                        ]),
+                  ),
+                );
 
-              expect(messages[0], contains('⌛️ Running "dart test"'));
-              expect(messages[1], contains('❌ Running "dart test"'));
+                expect(messages[0], contains('⌛️ Running "dart test"'));
+                expect(messages[1], contains('❌ Running "dart test"'));
 
-              expect(
-                messages[2].os,
-                contains(yellow('Coverage not 100%. Untested code:')),
-              );
+                expect(
+                  messages[2].os,
+                  contains(yellow('Coverage not 100%. Untested code:')),
+                );
 
-              expect(
-                messages[2].os,
-                contains('- ${red('lib/src/simple_base.dart:8'.os)}'),
-              );
+                expect(
+                  messages[2].os,
+                  contains('- ${red('lib/src/simple_base.dart:8'.os)}'),
+                );
 
-              expect(
-                messages[2].os,
-                contains('  ${blue('test/simple_base_test.dart'.os)}'),
-              );
-            });
+                expect(
+                  messages[2].os,
+                  contains('  ${blue('test/simple_base_test.dart'.os)}'),
+                );
+              },
+            );
 
             test('if there failing unit tests', () async {
               // Add a failing test to test file
               if (isRelative) Directory.current = sampleProject;
 
-              final modiefiedTestFile =
-                  testFileContent.replaceAll('// PLACEHOLDER', 'expect(1, 2);');
+              final modiefiedTestFile = testFileContent.replaceAll(
+                '// PLACEHOLDER',
+                'expect(1, 2);',
+              );
 
               testFile.writeAsStringSync(modiefiedTestFile);
 
@@ -279,14 +259,11 @@ void main() {
               await expectLater(
                 runner.run(['tests', '--input', input()]),
                 throwsA(
-                  isA<Exception>().having(
-                    (e) => e.toString().split('\n'),
-                    'message',
-                    [
-                      'Exception: Tests failed',
-                      yellow('Run "${green('dart test')}" to see details.'),
-                    ],
-                  ),
+                  isA<Exception>()
+                      .having((e) => e.toString().split('\n'), 'message', [
+                        'Exception: Tests failed',
+                        yellow('Run "${blue('dart test')}" to see details.'),
+                      ]),
                 ),
               );
 
@@ -297,14 +274,8 @@ void main() {
                 messages[2],
                 contains(red('./test/simple_base_test.dart:17:7'.os)),
               );
-              expect(
-                messages[2].os,
-                contains('Expected: <2>'),
-              );
-              expect(
-                messages[2].os,
-                contains('Actual: <1>'),
-              );
+              expect(messages[2].os, contains('Expected: <2>'));
+              expect(messages[2].os, contains('Actual: <1>'));
             });
           });
 
@@ -349,9 +320,7 @@ void main() {
                 Directory.current = sampleProject;
               }
 
-              await runner.run(
-                ['tests', '--input', input()],
-              );
+              await runner.run(['tests', '--input', input()]);
 
               // Check messages
               expect(
@@ -370,7 +339,8 @@ void main() {
   });
 }
 
-final flutterLcovReport = '''
+final flutterLcovReport =
+    '''
 SF:lib/src/simple_base.dart
 DA:5,1
 LF:1
@@ -387,4 +357,4 @@ LF:1
 LH:1
 end_of_record
 '''
-    .os;
+        .os;
