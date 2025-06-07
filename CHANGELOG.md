@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.5] - 2025-06-07
+
+### Fixed
+
+- Fixed missing error details
+
 ## [1.1.4] - 2025-06-07
 
 ### Changed
@@ -147,6 +153,7 @@
 
 - Initial version.
 
+[1.1.5]: https://github.com/inlavigo/gg_test/compare/1.1.4...1.1.5
 [1.1.4]: https://github.com/inlavigo/gg_test/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/inlavigo/gg_test/compare/1.1.2...1.1.3
 [1.1.2]: https://github.com/inlavigo/gg_test/compare/1.1.1...1.1.2

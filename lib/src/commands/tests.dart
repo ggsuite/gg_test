@@ -96,31 +96,6 @@ class Tests extends DirCommand<void> {
   }
 
   // ...........................................................................
-  List<String> _extractErrorLines(String message) {
-    // Regular expression to match file paths and line numbers
-
-    // coverage:ignore-start
-    RegExp exp = Platform.pathSeparator == r'\'
-        ? RegExp(r'test\\[\\\w]+\.dart[\s:]*\d+:\d+')
-        : RegExp(r'test\/[\/\w]+\.dart[\s:]*\d+:\d+');
-    // coverage:ignore-end
-
-    final matches = exp.allMatches(message);
-    final result = <String>[];
-
-    if (matches.isEmpty) {
-      return result;
-    }
-
-    for (final match in matches) {
-      var matchedString = match.group(0) ?? '';
-      result.add(matchedString);
-    }
-
-    return result;
-  }
-
-  // ...........................................................................
   String _addDotSlash(String relativeFile) {
     if (!relativeFile.startsWith('./'.os)) {
       return './$relativeFile'.os;
@@ -579,6 +554,7 @@ void main() {
     Set<String> errorLines,
   ) async {
     // Iterate over stdout and print output using a for loop
+
     await for (var event in process.stdout.transform(utf8.decoder)) {
       isError = isError || event.contains('[E]');
       if (isError) {
@@ -586,7 +562,8 @@ void main() {
         previousMessagesBelongingToError.add(event);
       }
 
-      final newErrorLines = _extractErrorLines(event);
+      final newErrorLines = ErrorInfoReader().extractErrorLines(event);
+
       if (newErrorLines.isNotEmpty &&
           !errorLines.contains(newErrorLines.first)) {
         // Print error line
@@ -595,7 +572,7 @@ void main() {
         );
         _messages.add(' - $newErrorLinesString');
 
-        // Print messages belonging to this error
+        // Print details
         final cleanedMessage = ErrorInfoReader().cleanupTestErrors(
           previousMessagesBelongingToError,
         );

@@ -45,7 +45,7 @@ class ErrorInfoReader {
     var result = splittedLines.where((line) {
       final additionalLines = RegExp(r'^\d\d:[\d:\s+-]+');
       var isOk =
-          !additionalLines.hasMatch(line) &&
+          (!additionalLines.hasMatch(line) || line.contains('[E]')) &&
           line.trim().isNotEmpty &&
           !line.startsWith(RegExp(r'\s*package:matcher'));
 
@@ -56,6 +56,33 @@ class ErrorInfoReader {
     result = result.where((line) => !line.contains('main.<fn>.<fn>')).toList();
 
     return result.toList();
+  }
+
+  // ...........................................................................
+  /// Returns the error lines from a given message.
+  List<String> extractErrorLines(String message) {
+    // Regular expression to match file paths and line numbers
+
+    // coverage:ignore-start
+    RegExp exp = Platform.pathSeparator == r'\'
+        ? RegExp(r'((test|src)\\[\\\w]+\.dart[\s:]*\d+:\d+)?')
+        : RegExp(r'(test|src)\/[\/\w]+\.dart[\s:]*\d+:\d+');
+    // coverage:ignore-end
+
+    final matches = exp.allMatches(message);
+    final result = <String>[];
+
+    if (matches.isEmpty) {
+      return result;
+    }
+
+    for (final match in matches) {
+      var matchedString = match.group(0) ?? '';
+      matchedString = matchedString.replaceFirst(RegExp(r'^src/'), 'lib/src/');
+      result.add(matchedString);
+    }
+
+    return result;
   }
 
   // ######################
