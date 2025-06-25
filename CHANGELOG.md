@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Fix regex bug on windows
+
 ## [1.1.5] - 2025-06-07
 
 ### Fixed
@@ -153,6 +159,7 @@
 
 - Initial version.
 
+[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.1.5...HEAD
 [1.1.5]: https://github.com/inlavigo/gg_test/compare/1.1.4...1.1.5
 [1.1.4]: https://github.com/inlavigo/gg_test/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/inlavigo/gg_test/compare/1.1.2...1.1.3

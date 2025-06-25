@@ -4,8 +4,6 @@
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
 
-import 'dart:io';
-
 import 'package:gg_test/gg_test.dart';
 
 /// Reads error information from a given error string.
@@ -64,9 +62,7 @@ class ErrorInfoReader {
     // Regular expression to match file paths and line numbers
 
     // coverage:ignore-start
-    RegExp exp = Platform.pathSeparator == r'\'
-        ? RegExp(r'((test|src)\\[\\\w]+\.dart[\s:]*\d+:\d+)?')
-        : RegExp(r'(test|src)\/[\/\w]+\.dart[\s:]*\d+:\d+');
+    RegExp exp = RegExp(r'(test|src)[\\/][\\/\w]+\.dart[\s:]*\d+:\d+');
     // coverage:ignore-end
 
     final matches = exp.allMatches(message);
@@ -94,9 +90,7 @@ class ErrorInfoReader {
     // Regular expression to match file paths and line numbers
 
     // coverage:ignore-start
-    final exp = Platform.pathSeparator == r'\'
-        ? RegExp(r'[\\\w]+\.dart(?:[\s:]*\d+:\d+)?')
-        : RegExp(r'[\/\w]+\.dart(?:[\s:]*\d+:\d+)?');
+    final exp = RegExp(r'[\\/\w]+\.dart(?:[\s:]*\d+:\d+)?');
     // coverage:ignore-end
     final matches = exp.allMatches(message.os);
     final result = <String>[];
