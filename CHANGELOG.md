@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.1.6] - 2025-07-09
 
 ### Fixed
 
@@ -159,7 +159,7 @@
 
 - Initial version.
 
-[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.1.5...HEAD
+[1.1.6]: https://github.com/inlavigo/gg_test/compare/1.1.5...1.1.6
 [1.1.5]: https://github.com/inlavigo/gg_test/compare/1.1.4...1.1.5
 [1.1.4]: https://github.com/inlavigo/gg_test/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/inlavigo/gg_test/compare/1.1.2...1.1.3
