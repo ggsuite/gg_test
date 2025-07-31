@@ -3,16 +3,19 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
-
   "configurations": [
     {
       "name": "gg_test.dart",
       "type": "dart",
       "request": "launch",
       "program": "${workspaceFolder}/bin/gg_test.dart",
-      "args": ["tests"],
+      "args": [
+        "tests",
+        "--input",
+        ".\\gg_project_root\\"
+      ],
       "console": "debugConsole",
-      "cwd": "/Users/gatzsche/dev_carat/ds_assembly"
+      "cwd": "P:\\test_workspace\\tickets\\feat_test"
     },
     {
       "name": "Current File",

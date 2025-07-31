@@ -105,7 +105,9 @@ class Tests extends DirCommand<void> {
 
   // ..........................................................................
   _Report _generateReport(Directory dir) {
-    return isFlutter ? _generateFlutterReport(dir) : _generateDartReport(dir);
+    return isFlutterDir(dir)
+        ? _generateFlutterReport(dir)
+        : _generateDartReport(dir);
   }
 
   // ...........................................................................
@@ -510,7 +512,7 @@ void main() {
 
   // ...........................................................................
   Future<int> _test(Directory dir) =>
-      isFlutter ? _testFlutter(dir) : _testDart(dir);
+      isFlutterDir(dir) ? _testFlutter(dir) : _testDart(dir);
 
   // ...........................................................................
   Future<int> _testDart(Directory dir) async {
@@ -645,7 +647,7 @@ void main() {
     }
 
     var percentage = _calculateCoverage(report);
-    if (!isFlutter) {
+    if (!isFlutterDir(dir)) {
       _writeLcovReport(report);
     }
 
