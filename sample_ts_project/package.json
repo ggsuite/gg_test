@@ -1,0 +1,55 @@
+{
+  "name": "@rljson/json",
+  "version": "0.0.23",
+  "description": "Basic json types, i. e. `Json`, `JsonValue`, `JsonArray`, ...",
+  "homepage": "https://github.com/rljson/json",
+  "bugs": "https://github.com/rljson/json/issues",
+  "private": false,
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rljson/json.git"
+  },
+  "main": "dist/json.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "npx vite build && tsc && cp README* dist && mkdir dist/src && cp src/example.ts dist/src",
+    "test": "npx vitest run --coverage && npm run lint",
+    "prebuild": "npm run test",
+    "prepublishOnly": "npm run build",
+    "lint": "npx eslint",
+    "updateGoldens": "cross-env UPDATE_GOLDENS=true npm test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "@vitest/coverage-v8": "^4.0.7",
+    "cross-env": "^10.1.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-jsdoc": "^61.1.12",
+    "eslint-plugin-tsdoc": "^0.4.0",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.3",
+    "vite": "^7.2.0",
+    "vite-node": "^3.2.4",
+    "vite-plugin-dts": "^4.5.4",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.7",
+    "vitest-dom": "^0.1.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "packageManager": "pnpm@10.6.2+sha512.47870716bea1572b53df34ad8647b42962bc790ce2bf4562ba0f643237d7302a3d6a8ecef9e4bdfc01d23af1969aa90485d4cebb0b9638fa5ef1daef656f6c1b"
+}
