@@ -68,7 +68,6 @@ void main() {
   late Directory sampleTsProject;
   late File srcFile;
   late File testFile;
-  late String testFileContent;
   late TestsTs testCmd;
   late MockGgProcessWrapper processWrapper;
   late CommandRunner<void> runner;
@@ -80,7 +79,7 @@ void main() {
 
   Future<void> initDirs() async {
     tmp = Directory.systemTemp.createTempSync('test_ts_');
-    d = Directory(join(tmp.path, 'test')); // working directory
+    d = Directory(join(tmp.path, 'test'));
     await d.create();
   }
 
@@ -110,8 +109,6 @@ void main() {
 
     testFile = File(join(sampleTsProject.path, 'test', 'simple_base.spec.ts'));
     expect(testFile.existsSync(), isTrue);
-
-    testFileContent = await testFile.readAsString();
   }
 
   Future<void> initCommandAndRunner() async {
@@ -297,6 +294,132 @@ FAIL test/simple_base.spec.ts
           contains(yellow('Coverage not 100%. Untested code:')),
         );
         expect(messages[2].os, contains('- ${red('src/simple_base.ts:7'.os)}'));
+      });
+
+      test('should respect coverage ignore markers', () async {
+        await init();
+
+        final srcDir = Directory(join(sampleTsProject.path, 'src'));
+        final testDir = Directory(join(sampleTsProject.path, 'test'));
+        if (!srcDir.existsSync()) {
+          srcDir.createSync(recursive: true);
+        }
+        if (!testDir.existsSync()) {
+          testDir.createSync(recursive: true);
+        }
+
+        // File with coverage:ignore-line.
+        final ignoreLineFile = File(join(srcDir.path, 'ignore_line.ts'));
+        ignoreLineFile.writeAsStringSync(
+          '// coverage:ignore-line\n'
+          'export function ignoreLineExample(): number {\n'
+          '  return 42;\n'
+          '}\n',
+        );
+
+        final ignoreLineTestFile = File(
+          join(testDir.path, 'ignore_line.spec.ts'),
+        );
+        ignoreLineTestFile.writeAsStringSync(
+          "import { describe, expect, it } from '@jest/globals';\n"
+          "import { ignoreLineExample } from '../src/ignore_line';\n"
+          '\n'
+          "describe('ignoreLineExample', () => {\n"
+          '  it(\'example should work\', () => {\n'
+          '    expect(ignoreLineExample()).toBe(42);\n'
+          '  });\n'
+          '});\n',
+        );
+
+        // File with coverage:ignore-start / coverage:ignore-end.
+        final ignoreLinesFile = File(join(srcDir.path, 'ignore_lines.ts'));
+        ignoreLinesFile.writeAsStringSync(
+          '// coverage:ignore-start\n'
+          'export function partiallyIgnored(): number {\n'
+          '  return 1;\n'
+          '}\n'
+          '// coverage:ignore-end\n'
+          'export function covered(): number {\n'
+          '  return 2;\n'
+          '}\n',
+        );
+
+        final ignoreLinesTestFile = File(
+          join(testDir.path, 'ignore_lines.spec.ts'),
+        );
+        ignoreLinesTestFile.writeAsStringSync(
+          "import { describe, expect, it } from '@jest/globals';\n"
+          "import { partiallyIgnored, covered } from '../src/ignore_lines';\n"
+          '\n'
+          "describe('ignore_lines', () => {\n"
+          '  it(\'example should work\', () => {\n'
+          '    expect(partiallyIgnored()).toBe(1);\n'
+          '    expect(covered()).toBe(2);\n'
+          '  });\n'
+          '});\n',
+        );
+
+        // File with coverage:ignore-file.
+        final ignoreFileFile = File(join(srcDir.path, 'ignore_file.ts'));
+        ignoreFileFile.writeAsStringSync(
+          '// coverage:ignore-file\n'
+          'export function ignoredFile(): number {\n'
+          '  return 1;\n'
+          '}\n',
+        );
+
+        final ignoreFileTestFile = File(
+          join(testDir.path, 'ignore_file.spec.ts'),
+        );
+        ignoreFileTestFile.writeAsStringSync(
+          "import { describe, expect, it } from '@jest/globals';\n"
+          "import { ignoredFile } from '../src/ignore_file';\n"
+          '\n'
+          "describe('ignore_file', () => {\n"
+          '  it(\'example should work\', () => {\n'
+          '    expect(ignoredFile()).toBe(1);\n'
+          '  });\n'
+          '});\n',
+        );
+
+        final coverageDir = Directory(join(sampleTsProject.path, 'coverage'));
+        final lcovFile = File(join(coverageDir.path, 'lcov.info'));
+
+        when(
+          () => processWrapper.start(
+            any<String>(),
+            any<List<String>>(),
+            workingDirectory: any(named: 'workingDirectory'),
+          ),
+        ).thenAnswer(
+          (_) async => FakeProcess(
+            stdoutData: 'PASS test suite',
+            onExit: () {
+              coverageDir.createSync(recursive: true);
+
+              final buffer = StringBuffer()
+                ..write(_tsLcovReport100)
+                ..writeln('SF:src/ignore_line.ts')
+                ..writeln('DA:1,0')
+                ..writeln('DA:2,1')
+                ..writeln('end_of_record')
+                ..writeln('SF:src/ignore_lines.ts')
+                ..writeln('DA:2,0')
+                ..writeln('DA:3,0')
+                ..writeln('DA:6,1')
+                ..writeln('end_of_record')
+                ..writeln('SF:src/ignore_file.ts')
+                ..writeln('DA:2,0')
+                ..writeln('end_of_record');
+
+              lcovFile.writeAsStringSync(buffer.toString());
+            },
+          ),
+        );
+
+        await runner.run(<String>['tests-ts', '--input', sampleTsProject.path]);
+
+        expect(messages.last, contains('✅ Coverage is 100%!'));
       });
     });
   });

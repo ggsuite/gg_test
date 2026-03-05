@@ -58,7 +58,6 @@ class TestsTs extends DirCommand<void> {
 
   final _errors = <String>[];
   final _messages = <String>[];
-  late Directory _coverageDir;
   late Directory _srcDir;
 
   final Map<String, List<bool>> _ignoredLinesCache = {};
@@ -68,7 +67,6 @@ class TestsTs extends DirCommand<void> {
   Future<void> get({required Directory directory, required GgLog ggLog}) async {
     await check(directory: directory);
 
-    _coverageDir = Directory(join(directory.path, 'coverage'));
     _srcDir = Directory(join(directory.path, 'src'));
 
     const packageManager = 'npx vitest';
@@ -189,8 +187,8 @@ class TestsTs extends DirCommand<void> {
     final result = _Report();
 
     Map<int, int>? summaryForScript;
-    var isExcluded = false;
     var currentScriptKey = '';
+    var ignoredLinesForScript = <bool>[];
 
     final lines = coverageFile.readAsLinesSync();
     for (final line in lines) {
@@ -201,19 +199,27 @@ class TestsTs extends DirCommand<void> {
             : './$scriptFromReport';
         final script = scriptRelative.os;
 
-        isExcluded = _isExcludedFromCoverageTs(script);
         final scriptAbsolute = canonicalize(join(dir.path, script));
 
         summaryForScript = <int, int>{};
         currentScriptKey = scriptAbsolute;
         result[currentScriptKey] = summaryForScript;
+
+        ignoredLinesForScript = _ignoredLines(scriptAbsolute);
       } else if (line.startsWith('DA:') && summaryForScript != null) {
         final parts = line.replaceFirst('DA:', '').split(',');
         if (parts.length != 2) {
           continue;
         }
         final lineNumber = int.parse(parts[0]);
-        final hits = isExcluded ? 1 : int.parse(parts[1]);
+        final rawHits = int.parse(parts[1]);
+
+        final isIgnored =
+            lineNumber >= 0 &&
+            lineNumber < ignoredLinesForScript.length &&
+            ignoredLinesForScript[lineNumber];
+
+        final hits = isIgnored ? 1 : rawHits;
         summaryForScript[lineNumber] = hits;
       }
     }
@@ -461,7 +467,6 @@ describe('CLASSNAME', () => {
     Set<String> errorLines,
   ) async {
     void collectEvent(String event) {
-      //print('STDOUT: $event');
       // Jest uses "FAIL" to indicate failing test suites.
       isError = isError || event.toLowerCase().contains('fail');
       if (isError) {
@@ -505,11 +510,11 @@ describe('CLASSNAME', () => {
   Future<_TaskResult> _task(Directory dir) async {
     final files = _implementationAndTestFiles();
 
-    /*final missingTestFiles = _collectMissingTestFiles(files);
+    final missingTestFiles = _collectMissingTestFiles(files);
     if (missingTestFiles.isNotEmpty) {
       _createMissingTestFiles(missingTestFiles, dir);
       return (1, _messages, _errors);
-    }*/
+    }
 
     final error = await _testTs(dir);
     if (error != 0) {
@@ -518,12 +523,12 @@ describe('CLASSNAME', () => {
 
     final report = _generateReport(dir);
 
-    /*final untestedFiles = _findUntestedFiles(report, files);
+    final untestedFiles = _findUntestedFiles(report, files);
     if (untestedFiles.isNotEmpty) {
       _messages.add(yellow('Please add valid tests to the following files:'));
       _printUntestedFiles(untestedFiles, dir);
       return (1, _messages, _errors);
-    }*/
+    }
 
     final percentage = _calculateCoverage(report);
 
@@ -541,6 +546,6 @@ describe('CLASSNAME', () => {
   }
 }
 
-// .............................................................................
+// ............................................................................
 /// Mocktail mock for [TestsTs].
 class MockTestsTs extends Mock implements TestsTs {}

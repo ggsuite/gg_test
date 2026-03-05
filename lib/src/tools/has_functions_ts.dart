@@ -18,7 +18,8 @@ class HasFunctionsTs {
   static bool hasFunctionsTs(String code) {
     final sanitized = _stripComments(code);
 
-    // Function declarations: `function foo(...) {}` or `export function foo(...) {}`
+    // Function declarations:
+    // `function foo(...) {}` or `export function foo(...) {}`
     const functionDeclPattern =
         r'\b(?:export\s+)?(?:async\s+)?function\s+[A-Za-z_][A-Za-z0-9_]*\s*\('; // ignore: lines_longer_than_80_chars
 
@@ -34,7 +35,8 @@ class HasFunctionsTs {
     const arrowFunctionPattern =
         r'\b(?:const|let|var)\s+[A-Za-z_][A-Za-z0-9_]*\s*=\s*(?:async\s*)?\([^;{)]*\)\s*=>'; // ignore: lines_longer_than_80_chars
 
-    // Function expressions assigned to variables: `const foo = function(...) {}`.
+    // Function expressions assigned to variables:
+    // `const foo = function(...) {}`.
     const functionExprPattern =
         r'\b(?:const|let|var)\s+[A-Za-z_][A-Za-z0-9_]*\s*=\s*(?:async\s+)?function\s*\('; // ignore: lines_longer_than_80_chars
 
