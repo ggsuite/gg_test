@@ -1,10 +1,14 @@
 # Changelog
 
-## [Unreleased]
+## [1.1.8] - 2026-03-08
 
 ### Added
 
 - Add .gitattributes file
+
+### Removed
+
+- Remove copy right header from generated test files
 
 ## [1.1.7] - 2025-07-31
 
@@ -171,7 +175,7 @@
 
 - Initial version.
 
-[Unreleased]: https://github.com/inlavigo/gg_test/compare/1.1.7...HEAD
+[1.1.8]: https://github.com/inlavigo/gg_test/compare/1.1.7...1.1.8
 [1.1.7]: https://github.com/inlavigo/gg_test/compare/1.1.6...1.1.7
 [1.1.6]: https://github.com/inlavigo/gg_test/compare/1.1.5...1.1.6
 [1.1.5]: https://github.com/inlavigo/gg_test/compare/1.1.4...1.1.5
