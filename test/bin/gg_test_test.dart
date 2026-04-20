@@ -20,7 +20,10 @@ void main() {
         '--help',
       ]);
 
-      final expectedMessages = ['Execute tests with coverage.', 'dart test'];
+      final expectedMessages = [
+        'Execute tests with coverage.',
+        'Runs the project test suite.',
+      ];
 
       final stdout = result.stdout as String;
 

@@ -335,8 +335,87 @@ void main() {
           });
         });
       }
+
+      // .......................................................................
+      group('TypeScript dispatch', () {
+        test(
+          'delegates to the injected TypeScriptTestRunner for a TS project',
+          () async {
+            final tsDir = Directory.systemTemp.createTempSync('gg_test_ts_');
+            File(join(tsDir.path, 'package.json')).writeAsStringSync('{}');
+            File(join(tsDir.path, 'tsconfig.json')).writeAsStringSync('{}');
+
+            final fakeRunner = _FakeTypeScriptTestRunner();
+            final localRunner = CommandRunner<void>('test', 'test')
+              ..addCommand(
+                Tests(ggLog: messages.add, typeScriptTestRunner: fakeRunner),
+              );
+
+            try {
+              await localRunner.run(['tests', '--input', tsDir.path]);
+              expect(fakeRunner.invocations, 1);
+              expect(fakeRunner.lastDirectory?.path, tsDir.path);
+            } finally {
+              tsDir.deleteSync(recursive: true);
+            }
+          },
+        );
+
+        test('propagates failures from the TypeScriptTestRunner', () async {
+          final tsDir = Directory.systemTemp.createTempSync('gg_test_ts_');
+          File(join(tsDir.path, 'package.json')).writeAsStringSync('{}');
+          File(join(tsDir.path, 'tsconfig.json')).writeAsStringSync('{}');
+
+          final fakeRunner = _FakeTypeScriptTestRunner(
+            onRun: () => throw Exception('ts boom'),
+          );
+          final localRunner = CommandRunner<void>('test', 'test')
+            ..addCommand(
+              Tests(ggLog: messages.add, typeScriptTestRunner: fakeRunner),
+            );
+
+          try {
+            await expectLater(
+              () => localRunner.run(['tests', '--input', tsDir.path]),
+              throwsA(
+                isA<Exception>().having(
+                  (e) => e.toString(),
+                  'message',
+                  contains('ts boom'),
+                ),
+              ),
+            );
+          } finally {
+            tsDir.deleteSync(recursive: true);
+          }
+        });
+      });
     });
   });
+}
+
+// .............................................................................
+/// A hand-written fake — simpler than a mocktail mock and keeps the test
+/// assertions local and readable.
+class _FakeTypeScriptTestRunner implements TypeScriptTestRunner {
+  _FakeTypeScriptTestRunner({void Function()? onRun}) : _onRun = onRun;
+
+  final void Function()? _onRun;
+  int invocations = 0;
+  Directory? lastDirectory;
+
+  @override
+  Future<void> run({
+    required Directory directory,
+    required void Function(String) ggLog,
+  }) async {
+    invocations++;
+    lastDirectory = directory;
+    _onRun?.call();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
 final flutterLcovReport =

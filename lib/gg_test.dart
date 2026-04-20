@@ -10,4 +10,6 @@ export 'src/commands/tests.dart';
 export 'src/gg_test.dart';
 export 'src/tools/error_info_reader.dart';
 export 'src/tools/has_functions.dart';
+export 'src/tools/is_type_script_project.dart';
 export 'src/tools/string_path_separator_extension.dart';
+export 'src/tools/type_script_test_runner.dart';

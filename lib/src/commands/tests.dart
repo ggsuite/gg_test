@@ -27,8 +27,15 @@ typedef _TaskResult = (int, List<String>, List<String>);
 /// Runs dart test on the source code
 class Tests extends DirCommand<void> {
   /// Constructor
-  Tests({required super.ggLog, this.processWrapper = const GgProcessWrapper()})
-    : super(name: 'tests', description: 'Runs »dart test«.');
+  Tests({
+    required super.ggLog,
+    this.processWrapper = const GgProcessWrapper(),
+    TypeScriptTestRunner? typeScriptTestRunner,
+  }) : _typeScriptTestRunner =
+           typeScriptTestRunner ?? const TypeScriptTestRunner(),
+       super(name: 'tests', description: 'Runs the project test suite.');
+
+  final TypeScriptTestRunner _typeScriptTestRunner;
 
   /// Pathes that will be excluded vom coverage
   static final foldersExcludedFromCoverage = ['l10n'];
@@ -38,6 +45,11 @@ class Tests extends DirCommand<void> {
   @override
   Future<void> get({required Directory directory, required GgLog ggLog}) async {
     await check(directory: directory);
+
+    if (isTypeScriptProject(directory)) {
+      await _typeScriptTestRunner.run(directory: directory, ggLog: ggLog);
+      return;
+    }
 
     // Save directories
     _coverageDir = Directory(join(directory.path, 'coverage'));
