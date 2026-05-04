@@ -391,6 +391,48 @@ void main() {
         });
       });
     });
+
+    group('isCoverageSourceForOwnFile', () {
+      test('matches sources from the package itself', () {
+        expect(
+          Tests.isCoverageSourceForOwnFile(
+            source: 'package:my_pkg/src/foo/bar.dart',
+            packageName: 'my_pkg',
+            implementationFileWithoutLib: 'src/foo/bar.dart',
+          ),
+          isTrue,
+        );
+      });
+
+      test(
+        'rejects sources from a dependency that share the relative path',
+        () {
+          // Regression: previously a permissive `contains` check meant a
+          // coverage entry from a dependency with the same relative path
+          // (and possibly more lines) got applied to the host package's
+          // file, blowing up `_ignoredLines` with a RangeError.
+          expect(
+            Tests.isCoverageSourceForOwnFile(
+              source: 'package:other_pkg/src/foo/bar.dart',
+              packageName: 'my_pkg',
+              implementationFileWithoutLib: 'src/foo/bar.dart',
+            ),
+            isFalse,
+          );
+        },
+      );
+
+      test('falls back to substring match when package name is unknown', () {
+        expect(
+          Tests.isCoverageSourceForOwnFile(
+            source: 'package:other_pkg/src/foo/bar.dart',
+            packageName: null,
+            implementationFileWithoutLib: 'src/foo/bar.dart',
+          ),
+          isTrue,
+        );
+      });
+    });
   });
 }
 

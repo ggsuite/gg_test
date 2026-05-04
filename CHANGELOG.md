@@ -1,5 +1,7 @@
 # Changelog
 
+## [2.0.1] - 2026-05-04
+
 ## [2.0.0] - 2026-04-20
 
 ### Added
@@ -186,6 +188,7 @@
 
 - Initial version.
 
+[2.0.1]: https://github.com/inlavigo/gg_test/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/inlavigo/gg_test/compare/1.1.8...2.0.0
 [1.1.8]: https://github.com/inlavigo/gg_test/compare/1.1.7...1.1.8
 [1.1.7]: https://github.com/inlavigo/gg_test/compare/1.1.6...1.1.7

@@ -140,6 +140,10 @@ class Tests extends DirCommand<void> {
     // Prepare result
     final result = _Report();
 
+    // Identify the current package so we don't pick up coverage entries from
+    // dependencies that happen to share a relative file path with us.
+    final packageName = _readPackageName(dir);
+
     // Collect coverage data
     for (final coverageFile in relativeCoverageFiles) {
       final testFile = coverageFile
@@ -171,7 +175,11 @@ class Tests extends DirCommand<void> {
       final entriesForImplementationFile = <dynamic>[];
       for (final entry in entries) {
         final source = entry['source'] as String;
-        if (source.os.contains(implementationFileWithoutLib)) {
+        if (isCoverageSourceForOwnFile(
+          source: source,
+          packageName: packageName,
+          implementationFileWithoutLib: implementationFileWithoutLib,
+        )) {
           entriesForImplementationFile.add(entry);
         }
       }
@@ -203,6 +211,46 @@ class Tests extends DirCommand<void> {
     }
 
     return result;
+  }
+
+  // ...........................................................................
+  /// Reads the `name:` field from the package's pubspec.yaml. Returns `null`
+  /// if the manifest is missing or malformed — callers fall back to the
+  /// legacy permissive matching in that case.
+  static String? _readPackageName(Directory dir) {
+    final pubspec = File(join(dir.path, 'pubspec.yaml'));
+    if (!pubspec.existsSync()) return null;
+    final lines = pubspec.readAsLinesSync();
+    final nameLine = RegExp(r'^name:\s*([A-Za-z0-9_]+)\s*$');
+    for (final line in lines) {
+      final match = nameLine.firstMatch(line);
+      if (match != null) return match.group(1);
+    }
+    return null;
+  }
+
+  // ...........................................................................
+  /// Whether a coverage [source] entry refers to the implementation file
+  /// of the current package.
+  ///
+  /// When [packageName] is known, sources must end with the
+  /// `package:<packageName>/<implementationFileWithoutLib>` URI — this
+  /// avoids accidentally attributing coverage entries from dependencies
+  /// that happen to ship a file with the same relative path. When
+  /// [packageName] is `null` (e.g. a missing or malformed pubspec) the
+  /// match falls back to a permissive substring check.
+  static bool isCoverageSourceForOwnFile({
+    required String source,
+    required String? packageName,
+    required String implementationFileWithoutLib,
+  }) {
+    final normalizedSource = source.os;
+    final normalizedFile = implementationFileWithoutLib.os;
+    if (packageName == null) {
+      return normalizedSource.contains(normalizedFile);
+    }
+    final expected = 'package:$packageName/$normalizedFile'.os;
+    return normalizedSource.endsWith(expected);
   }
 
   // ...........................................................................
