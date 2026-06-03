@@ -6,20 +6,19 @@
 
 import 'dart:io';
 
-import 'package:path/path.dart';
+import 'package:gg_lang/gg_lang.dart';
 
 // #############################################################################
 
 /// Returns true when [directory] looks like a TypeScript project.
 ///
-/// A Dart/Flutter `pubspec.yaml` always takes precedence — it unambiguously
-/// marks the directory as a Dart/Flutter package even if a `package.json`
-/// happens to sit next to it (e.g. for bundled tooling).
+/// Detection is delegated to gg_lang's [detectProjectType], so a Dart/Flutter
+/// `pubspec.yaml` always takes precedence; a directory with no recognizable
+/// manifest is treated as non-TypeScript.
 bool isTypeScriptProject(Directory directory) {
-  if (File(join(directory.path, 'pubspec.yaml')).existsSync()) {
+  try {
+    return detectProjectType(directory) == ProjectType.typescript;
+  } catch (_) {
     return false;
   }
-  final packageJson = File(join(directory.path, 'package.json'));
-  final tsconfig = File(join(directory.path, 'tsconfig.json'));
-  return packageJson.existsSync() && tsconfig.existsSync();
 }
