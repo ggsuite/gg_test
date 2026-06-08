@@ -5,6 +5,7 @@
 ### Changed
 
 - feat: source TypeScript test command from gg\_lang catalog; use gg\_lang project detection
+- gg\_multi: changed references to git
 
 ## [2.0.1] - 2026-05-04
 
