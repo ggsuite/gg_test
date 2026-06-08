@@ -7,11 +7,11 @@
 import 'dart:io';
 
 import 'package:gg_console_colors/gg_console_colors.dart';
+import 'package:gg_lang/gg_lang.dart';
 import 'package:gg_log/gg_log.dart';
 import 'package:gg_process/gg_process.dart';
 import 'package:gg_status_printer/gg_status_printer.dart';
 import 'package:mocktail/mocktail.dart' as mocktail;
-import 'package:path/path.dart';
 
 // #############################################################################
 
@@ -30,7 +30,8 @@ class TypeScriptTestRunner {
   /// Runs `vitest run --coverage` via the detected package manager.
   /// Throws on failure.
   Future<void> run({required Directory directory, required GgLog ggLog}) async {
-    final cmd = _buildVitestCommand(directory);
+    final pm = detectTypeScriptPackageManager(directory);
+    final cmd = pm.execCommand('vitest', ['run', '--coverage']);
 
     final statusPrinter = GgStatusPrinter<void>(
       message: 'Running "vitest run --coverage"',
@@ -69,20 +70,6 @@ class TypeScriptTestRunner {
         ),
       ].join('\n'),
     );
-  }
-
-  // ...........................................................................
-  ({String executable, List<String> args}) _buildVitestCommand(
-    Directory directory,
-  ) {
-    final vitestArgs = ['vitest', 'run', '--coverage'];
-    if (File(join(directory.path, 'pnpm-lock.yaml')).existsSync()) {
-      return (executable: 'pnpm', args: ['exec', ...vitestArgs]);
-    }
-    if (File(join(directory.path, 'yarn.lock')).existsSync()) {
-      return (executable: 'yarn', args: vitestArgs);
-    }
-    return (executable: 'npx', args: vitestArgs);
   }
 }
 

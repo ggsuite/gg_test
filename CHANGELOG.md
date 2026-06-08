@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.1.0] - 2026-06-08
+
+### Changed
+
+- feat: source TypeScript test command from gg\_lang catalog; use gg\_lang project detection
+- gg\_multi: changed references to git
+- gg\_multi: changed references to git
+- Gg Multi: changed references to pub.dev
+
 ## [2.0.1] - 2026-05-04
 
 ## [2.0.0] - 2026-04-20
@@ -188,6 +197,7 @@
 
 - Initial version.
 
+[2.1.0]: https://github.com/inlavigo/gg_test/compare/2.0.1...2.1.0
 [2.0.1]: https://github.com/inlavigo/gg_test/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/inlavigo/gg_test/compare/1.1.8...2.0.0
 [1.1.8]: https://github.com/inlavigo/gg_test/compare/1.1.7...1.1.8
