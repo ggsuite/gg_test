@@ -215,8 +215,8 @@ class Tests extends DirCommand<void> {
 
   // ...........................................................................
   /// Reads the `name:` field from the package's pubspec.yaml. Returns `null`
-  /// if the manifest is missing or malformed — callers fall back to the
-  /// legacy permissive matching in that case.
+  /// if the manifest is missing or malformed — callers pick a suitable
+  /// fallback in that case.
   static String? _readPackageName(Directory dir) {
     final pubspec = File(join(dir.path, 'pubspec.yaml'));
     if (!pubspec.existsSync()) return null;
@@ -481,7 +481,8 @@ void main() {
   ) {
     // Create missing test files and ask user to edit it
     _messages.add(yellow('Tests were created. Please revise:'));
-    final packageName = basename(canonicalize(dir.path));
+    final packageName =
+        _readPackageName(dir) ?? basename(canonicalize(dir.path));
 
     for (final (implementationFile, testFile) in missingFiles) {
       // Create test file with intermediate directories

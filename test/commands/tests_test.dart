@@ -392,6 +392,65 @@ void main() {
       });
     });
 
+    group('created test boilerplate', () {
+      // Copies sample_project into a folder with a different name so that
+      // folder name and pubspec package name diverge.
+      Future<Directory> copySampleProjectAs(String folderName) async {
+        final src = Directory(join('sample_project'));
+        final dst = Directory(join(d.path, folderName));
+
+        final r = Platform.isWindows
+            ? await Process.run('xcopy', [src.path, dst.path, '/E', '/I', '/H'])
+            : await Process.run('cp', ['-r', src.path, dst.path]);
+
+        expect(r.exitCode, 0);
+        return dst;
+      }
+
+      test('imports the package name from pubspec.yaml, '
+          'not the folder name', () async {
+        final dir = await copySampleProjectAs('ggsuite_sample_project');
+        final missingTest = File(
+          join(dir.path, 'test', 'simple_base_test.dart'),
+        );
+        missingTest.deleteSync();
+
+        await expectLater(
+          runner.run(['tests', '--input', dir.path]),
+          throwsA(isA<Exception>()),
+        );
+
+        final created = missingTest.readAsStringSync();
+        expect(
+          created,
+          contains("import 'package:sample_project/sample_project.dart';"),
+        );
+        expect(created, isNot(contains('ggsuite_sample_project')));
+      });
+
+      test('falls back to the folder name when pubspec.yaml '
+          'is missing', () async {
+        testIsFlutter = false;
+        final dir = await copySampleProjectAs('fallback_project');
+        File(join(dir.path, 'pubspec.yaml')).deleteSync();
+        final missingTest = File(
+          join(dir.path, 'test', 'simple_base_test.dart'),
+        );
+        missingTest.deleteSync();
+
+        await expectLater(
+          runner.run(['tests', '--input', dir.path]),
+          throwsA(isA<Exception>()),
+        );
+
+        final created = missingTest.readAsStringSync();
+        expect(
+          created,
+          contains("import 'package:fallback_project/fallback_project.dart';"),
+        );
+      });
+    });
+
     group('isCoverageSourceForOwnFile', () {
       test('matches sources from the package itself', () {
         expect(

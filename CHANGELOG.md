@@ -1,5 +1,13 @@
 # Changelog
 
+## \[Unreleased\]
+
+### Fixed
+
+- Generated test boilerplate reads the package name from pubspec.yaml instead of deriving it from the folder name
+
+## [2.1.1] - 2026-06-11
+
 ## [2.1.0] - 2026-06-08
 
 ### Changed
@@ -197,6 +205,7 @@
 
 - Initial version.
 
+[2.1.1]: https://github.com/inlavigo/gg_test/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/inlavigo/gg_test/compare/2.0.1...2.1.0
 [2.0.1]: https://github.com/inlavigo/gg_test/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/inlavigo/gg_test/compare/1.1.8...2.0.0
