@@ -49,7 +49,15 @@ class Tests extends DirCommand<void> {
 
     // Cross-language bridge repos (pubspec.yaml + package.json + tsconfig)
     // are tested as TypeScript, so their package.json `test` script runs.
-    if (isTypeScriptProject(directory) || isBridgeProject(directory)) {
+    // `checkProjectType` encodes the bridge → TypeScript rule in one place; a
+    // directory with no recognizable manifest falls through to the Dart path.
+    var runsAsTypeScript = false;
+    try {
+      runsAsTypeScript = checkProjectType(directory) == ProjectType.typescript;
+    } catch (_) {
+      runsAsTypeScript = false;
+    }
+    if (runsAsTypeScript) {
       await _typeScriptTestRunner.run(directory: directory, ggLog: ggLog);
       return;
     }

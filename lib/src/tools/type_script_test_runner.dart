@@ -28,6 +28,9 @@ class TypeScriptTestRunner {
   /// Constructor.
   const TypeScriptTestRunner({this.processWrapper = const GgProcessWrapper()});
 
+  /// Example instance for tests — uses the real default process wrapper.
+  factory TypeScriptTestRunner.example() => const TypeScriptTestRunner();
+
   /// The process wrapper used to execute shell processes.
   final GgProcessWrapper processWrapper;
 

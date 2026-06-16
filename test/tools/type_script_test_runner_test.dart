@@ -131,5 +131,9 @@ void main() {
       const runner = TypeScriptTestRunner();
       expect(runner.processWrapper, isA<GgProcessWrapper>());
     });
+
+    test('example provides a real, usable instance', () {
+      expect(TypeScriptTestRunner.example(), isA<TypeScriptTestRunner>());
+    });
   });
 }
