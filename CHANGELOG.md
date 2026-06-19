@@ -12,7 +12,8 @@
 
 - Treat dart-typescript bridge repos as TypeScript for can/do commit, running package.json scripts (test/lint/format:check)
 - Treat dart-typescript bridge repos as TypeScript for can/do review (npm install, skip dart pub get); export isBridgeProject from gg\_one
-- Introduce checkProjectType() as single source of truth for bridge-&gt;TypeScript check rule; add .example() real-instance factories &amp; P:\programs\flutter/bin/internal/exit\_with\_errorlevel.bat
+- Introduce checkProjectType() as single source of truth for bridge->TypeScript check rule; add .example() real-instance factories & P:\programs\flutter/bin/internal/exit\_with\_errorlevel.bat
+- gg\_multi: changed references to git
 
 ## [2.1.1] - 2026-06-11
 
