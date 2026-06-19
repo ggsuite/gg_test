@@ -15,26 +15,43 @@ import 'package:mocktail/mocktail.dart' as mocktail;
 
 // #############################################################################
 
-/// Runs Vitest against a TypeScript project.
+/// Runs the test suite of a TypeScript project.
 ///
-/// The coverage gate is delegated to Vitest itself — projects express their
-/// thresholds in `vitest.config.{ts,mts}` (`thresholds` + `checkCoverage`),
-/// so this runner only needs to fail when Vitest fails.
+/// When the project's `package.json` declares a `test` script, that script is
+/// run (`<pm> run test`) so a cross-language bridge repo can chain its Dart
+/// and TypeScript suites. Otherwise it falls back to `vitest run --coverage`.
+///
+/// The coverage gate is delegated to the script / Vitest itself — projects
+/// express their thresholds in `vitest.config.{ts,mts}` (`thresholds` +
+/// `checkCoverage`), so this runner only needs to fail when the command fails.
 class TypeScriptTestRunner {
   /// Constructor.
   const TypeScriptTestRunner({this.processWrapper = const GgProcessWrapper()});
 
+  /// Example instance for tests — uses the real default process wrapper.
+  factory TypeScriptTestRunner.example() => const TypeScriptTestRunner();
+
   /// The process wrapper used to execute shell processes.
   final GgProcessWrapper processWrapper;
 
-  /// Runs `vitest run --coverage` via the detected package manager.
-  /// Throws on failure.
+  /// Runs the project's `test` script (or `vitest run --coverage` as a
+  /// fallback) via the detected package manager. Throws on failure.
   Future<void> run({required Directory directory, required GgLog ggLog}) async {
     final pm = detectTypeScriptPackageManager(directory);
-    final cmd = pm.execCommand('vitest', ['run', '--coverage']);
+
+    final ({String executable, List<String> args}) cmd;
+    final String label;
+    if (hasNpmScript(directory, 'test')) {
+      // Prefer the project's own test script when one is defined.
+      cmd = pm.runCommand('test');
+      label = '${cmd.executable} ${cmd.args.join(' ')}';
+    } else {
+      cmd = pm.execCommand('vitest', ['run', '--coverage']);
+      label = 'vitest run --coverage';
+    }
 
     final statusPrinter = GgStatusPrinter<void>(
-      message: 'Running "vitest run --coverage"',
+      message: 'Running "$label"',
       ggLog: ggLog,
     );
     statusPrinter.status = GgStatusPrinterStatus.running;
@@ -64,10 +81,7 @@ class TypeScriptTestRunner {
     throw Exception(
       [
         'Tests failed',
-        yellow(
-          'Run "${blue('vitest run --coverage')}" '
-          'to see details.',
-        ),
+        yellow('Run "${blue(label)}" to see details.'),
       ].join('\n'),
     );
   }

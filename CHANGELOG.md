@@ -6,6 +6,15 @@
 
 - Generated test boilerplate reads the package name from pubspec.yaml instead of deriving it from the folder name
 
+## [2.2.0] - 2026-06-19
+
+### Changed
+
+- Treat dart-typescript bridge repos as TypeScript for can/do commit, running package.json scripts (test/lint/format:check)
+- Treat dart-typescript bridge repos as TypeScript for can/do review (npm install, skip dart pub get); export isBridgeProject from gg\_one
+- Introduce checkProjectType() as single source of truth for bridge->TypeScript check rule; add .example() real-instance factories & P:\programs\flutter/bin/internal/exit\_with\_errorlevel.bat
+- gg\_multi: changed references to git
+
 ## [2.1.1] - 2026-06-11
 
 ## [2.1.0] - 2026-06-08
@@ -205,6 +214,7 @@
 
 - Initial version.
 
+[2.2.0]: https://github.com/inlavigo/gg_test/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/inlavigo/gg_test/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/inlavigo/gg_test/compare/2.0.1...2.1.0
 [2.0.1]: https://github.com/inlavigo/gg_test/compare/2.0.0...2.0.1

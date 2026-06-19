@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:gg_args/gg_args.dart';
 import 'package:gg_console_colors/gg_console_colors.dart';
 import 'package:gg_is_flutter/gg_is_flutter.dart';
+import 'package:gg_lang/gg_lang.dart';
 import 'package:gg_log/gg_log.dart';
 import 'package:gg_process/gg_process.dart';
 import 'package:gg_status_printer/gg_status_printer.dart';
@@ -46,7 +47,17 @@ class Tests extends DirCommand<void> {
   Future<void> get({required Directory directory, required GgLog ggLog}) async {
     await check(directory: directory);
 
-    if (isTypeScriptProject(directory)) {
+    // Cross-language bridge repos (pubspec.yaml + package.json + tsconfig)
+    // are tested as TypeScript, so their package.json `test` script runs.
+    // `checkProjectType` encodes the bridge → TypeScript rule in one place; a
+    // directory with no recognizable manifest falls through to the Dart path.
+    var runsAsTypeScript = false;
+    try {
+      runsAsTypeScript = checkProjectType(directory) == ProjectType.typescript;
+    } catch (_) {
+      runsAsTypeScript = false;
+    }
+    if (runsAsTypeScript) {
       await _typeScriptTestRunner.run(directory: directory, ggLog: ggLog);
       return;
     }

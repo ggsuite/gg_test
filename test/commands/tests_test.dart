@@ -361,6 +361,35 @@ void main() {
           },
         );
 
+        test(
+          'delegates to the TypeScriptTestRunner for a bridge repo',
+          () async {
+            // A bridge repo ships pubspec.yaml AND package.json + tsconfig.
+            final bridgeDir = Directory.systemTemp.createTempSync(
+              'gg_test_bridge_',
+            );
+            File(
+              join(bridgeDir.path, 'pubspec.yaml'),
+            ).writeAsStringSync('name: b\n');
+            File(join(bridgeDir.path, 'package.json')).writeAsStringSync('{}');
+            File(join(bridgeDir.path, 'tsconfig.json')).writeAsStringSync('{}');
+
+            final fakeRunner = _FakeTypeScriptTestRunner();
+            final localRunner = CommandRunner<void>('test', 'test')
+              ..addCommand(
+                Tests(ggLog: messages.add, typeScriptTestRunner: fakeRunner),
+              );
+
+            try {
+              await localRunner.run(['tests', '--input', bridgeDir.path]);
+              expect(fakeRunner.invocations, 1);
+              expect(fakeRunner.lastDirectory?.path, bridgeDir.path);
+            } finally {
+              bridgeDir.deleteSync(recursive: true);
+            }
+          },
+        );
+
         test('propagates failures from the TypeScriptTestRunner', () async {
           final tsDir = Directory.systemTemp.createTempSync('gg_test_ts_');
           File(join(tsDir.path, 'package.json')).writeAsStringSync('{}');

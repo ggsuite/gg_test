@@ -91,6 +91,24 @@ void main() {
       },
     );
 
+    test('runs the package.json "test" script when one is defined', () async {
+      File(join(tmp.path, 'pnpm-lock.yaml')).writeAsStringSync('');
+      File(
+        join(tmp.path, 'package.json'),
+      ).writeAsStringSync('{"scripts":{"test":"vitest run && dart test"}}');
+      stubRun(ProcessResult(1, 0, '', ''));
+
+      final runner = TypeScriptTestRunner(processWrapper: processWrapper);
+      await runner.run(directory: tmp, ggLog: messages.add);
+
+      final captured = captureRun();
+      expect(captured[0], 'pnpm');
+      expect(captured[1], ['run', 'test']);
+      expect(captured[2], tmp.path);
+      expect(messages[0], contains('⌛️ Running "pnpm run test"'));
+      expect(messages[1], contains('✅ Running "pnpm run test"'));
+    });
+
     test('throws and echoes tool output when vitest exits non-zero', () async {
       File(join(tmp.path, 'pnpm-lock.yaml')).writeAsStringSync('');
       stubRun(ProcessResult(1, 1, 'FAIL  src/foo.spec.ts > bar', ''));
@@ -112,6 +130,10 @@ void main() {
     test('defaults processWrapper when not provided', () {
       const runner = TypeScriptTestRunner();
       expect(runner.processWrapper, isA<GgProcessWrapper>());
+    });
+
+    test('example provides a real, usable instance', () {
+      expect(TypeScriptTestRunner.example(), isA<TypeScriptTestRunner>());
     });
   });
 }
