@@ -6,6 +6,12 @@
 
 - Generated test boilerplate reads the package name from pubspec.yaml instead of deriving it from the folder name
 
+## [Unreleased]
+
+### Fixed
+
+- Revert org-prefixed repo folders (ticket org\_prefix\_folders); keep gg\_cross\_language\_deps
+
 ## [2.2.0] - 2026-06-19
 
 ### Changed
@@ -214,6 +220,7 @@
 
 - Initial version.
 
+[Unreleased]: https://github.com/inlavigo/gg_test/compare/2.2.0...HEAD
 [2.2.0]: https://github.com/inlavigo/gg_test/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/inlavigo/gg_test/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/inlavigo/gg_test/compare/2.0.1...2.1.0
