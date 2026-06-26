@@ -6,6 +6,12 @@
 
 - Generated test boilerplate reads the package name from pubspec.yaml instead of deriving it from the folder name
 
+## [2.2.2] - 2026-06-26
+
+### Changed
+
+- gg\_multi: changed references to git
+
 ## [2.2.1] - 2026-06-25
 
 ### Fixed
@@ -220,6 +226,7 @@
 
 - Initial version.
 
+[2.2.2]: https://github.com/inlavigo/gg_test/compare/2.2.1...2.2.2
 [2.2.1]: https://github.com/inlavigo/gg_test/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/inlavigo/gg_test/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/inlavigo/gg_test/compare/2.1.0...2.1.1
