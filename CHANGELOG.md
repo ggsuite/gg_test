@@ -2,9 +2,19 @@
 
 ## \[Unreleased\]
 
+### Changed
+
+- Coverage collection for Dart packages is scoped to the package under test via `dart test --coverage-package` (requires test\_core >= 0.6.15, i.e. test >= 1.26.0). This speeds up test runs considerably because coverage of dependency libraries is no longer collected and parsed. Older test versions fall back to the previous unscoped behavior.
+
 ### Fixed
 
 - Generated test boilerplate reads the package name from pubspec.yaml instead of deriving it from the folder name
+
+## [2.2.3] - 2026-07-05
+
+### Changed
+
+- Optimize performance: Cover only the package itself
 
 ## [2.2.2] - 2026-06-26
 
@@ -226,6 +236,7 @@
 
 - Initial version.
 
+[2.2.3]: https://github.com/inlavigo/gg_test/compare/2.2.2...2.2.3
 [2.2.2]: https://github.com/inlavigo/gg_test/compare/2.2.1...2.2.2
 [2.2.1]: https://github.com/inlavigo/gg_test/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/inlavigo/gg_test/compare/2.1.1...2.2.0

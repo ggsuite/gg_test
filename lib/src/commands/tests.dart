@@ -241,6 +241,100 @@ class Tests extends DirCommand<void> {
   }
 
   // ...........................................................................
+  /// The first `test_core` version supporting `dart test --coverage-package`.
+  static const minTestCoreVersionForScopedCoverage = '0.6.15';
+
+  // ...........................................................................
+  /// Returns the `dart test` args restricting coverage collection to the
+  /// package located in [dir].
+  ///
+  /// `dart test --coverage` collects coverage for every library loaded by a
+  /// test suite — including all dependencies — which makes collection slow
+  /// and the resulting `*.vm.json` files huge. gg_test only evaluates the
+  /// package's own coverage, so collection is scoped to the package via
+  /// `--coverage-package` when the resolved `test_core` supports it
+  /// (>= [minTestCoreVersionForScopedCoverage]). Returns an empty list when
+  /// the package name or a sufficiently new `test_core` version cannot be
+  /// detected — the run then falls back to unscoped collection.
+  static List<String> coveragePackageArgs(Directory dir) {
+    final packageName = _readPackageName(dir);
+    if (packageName == null) {
+      return const [];
+    }
+
+    final testCoreVersion = resolvedTestCoreVersion(dir);
+    final isSupported =
+        testCoreVersion != null &&
+        versionIsAtLeast(testCoreVersion, minTestCoreVersionForScopedCoverage);
+    if (!isSupported) {
+      return const [];
+    }
+
+    return ['--coverage-package', '^$packageName\$'];
+  }
+
+  // ...........................................................................
+  /// Reads the resolved `test_core` version from `pubspec.lock`.
+  ///
+  /// Looks into [dir] first and then into its ancestors, because in a pub
+  /// workspace the lock file lives at the workspace root. The walk ends at
+  /// the filesystem root or at [stopAt] (lets tests stay inside a sandbox).
+  /// Returns `null` when no lock file or no `test_core` entry is found.
+  static String? resolvedTestCoreVersion(Directory dir, {Directory? stopAt}) {
+    final stopPath = stopAt == null ? null : canonicalize(stopAt.path);
+    var current = Directory(canonicalize(dir.path));
+    while (true) {
+      final lockFile = File(join(current.path, 'pubspec.lock'));
+      if (lockFile.existsSync()) {
+        final content = lockFile.readAsStringSync();
+        final match = RegExp(
+          r'^  test_core:\r?\n(?:    .*\r?\n)*?    version:\s*"([^"]+)"',
+          multiLine: true,
+        ).firstMatch(content);
+        return match?.group(1);
+      }
+
+      final parent = current.parent;
+      if (parent.path == current.path || current.path == stopPath) {
+        return null;
+      }
+      current = parent;
+    }
+  }
+
+  // ...........................................................................
+  /// Whether [version] is greater than or equal to [minimum].
+  ///
+  /// Both are `major.minor.patch` strings. Pre-release and build suffixes
+  /// are ignored. Returns `false` when either version cannot be parsed.
+  static bool versionIsAtLeast(String version, String minimum) {
+    List<int>? parse(String version) {
+      final match = RegExp(r'^(\d+)\.(\d+)\.(\d+)').firstMatch(version.trim());
+      if (match == null) {
+        return null;
+      }
+      return [
+        int.parse(match.group(1)!),
+        int.parse(match.group(2)!),
+        int.parse(match.group(3)!),
+      ];
+    }
+
+    final parsedVersion = parse(version);
+    final parsedMinimum = parse(minimum);
+    if (parsedVersion == null || parsedMinimum == null) {
+      return false;
+    }
+
+    for (var i = 0; i < 3; i++) {
+      if (parsedVersion[i] != parsedMinimum[i]) {
+        return parsedVersion[i] > parsedMinimum[i];
+      }
+    }
+    return true;
+  }
+
+  // ...........................................................................
   /// Whether a coverage [source] entry refers to the implementation file
   /// of the current package.
   ///
@@ -597,6 +691,7 @@ void main() {
       'expanded',
       '--coverage',
       'coverage',
+      ...coveragePackageArgs(dir),
       '--chain-stack-traces',
       '--no-color',
     ], workingDirectory: dir.path);

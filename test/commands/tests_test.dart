@@ -9,7 +9,9 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:gg_console_colors/gg_console_colors.dart';
 import 'package:gg_is_flutter/gg_is_flutter.dart';
+import 'package:gg_process/gg_process.dart';
 import 'package:gg_test/gg_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 
@@ -417,6 +419,193 @@ void main() {
           } finally {
             tsDir.deleteSync(recursive: true);
           }
+        });
+      });
+    });
+
+    group('coveragePackageArgs', () {
+      late Directory pkgDir;
+
+      setUp(() {
+        pkgDir = Directory.systemTemp.createTempSync('gg_test_pkg_');
+      });
+
+      tearDown(() {
+        pkgDir.deleteSync(recursive: true);
+      });
+
+      void writePubspec() {
+        File(
+          join(pkgDir.path, 'pubspec.yaml'),
+        ).writeAsStringSync('name: my_pkg\n');
+      }
+
+      void writeLock(
+        String testCoreVersion, {
+        Directory? into,
+        String lineEnding = '\n',
+      }) {
+        final content =
+            '''
+packages:
+  test_core:
+    dependency: transitive
+    description:
+      name: test_core
+      sha256: "1234"
+      url: "https://pub.dev"
+    source: hosted
+    version: "$testCoreVersion"
+sdks:
+  dart: ">=3.8.0 <4.0.0"
+'''
+                .replaceAll('\n', lineEnding);
+        File(
+          join((into ?? pkgDir).path, 'pubspec.lock'),
+        ).writeAsStringSync(content);
+      }
+
+      test('returns scoped args when test_core supports the option', () {
+        writePubspec();
+        writeLock('0.6.15');
+        expect(Tests.coveragePackageArgs(pkgDir), [
+          '--coverage-package',
+          '^my_pkg\$',
+        ]);
+      });
+
+      test('returns an empty list when test_core is too old', () {
+        writePubspec();
+        writeLock('0.6.14');
+        expect(Tests.coveragePackageArgs(pkgDir), isEmpty);
+      });
+
+      test('returns an empty list when the package name is unknown', () {
+        writeLock('0.6.16');
+        expect(Tests.coveragePackageArgs(pkgDir), isEmpty);
+      });
+
+      test('returns an empty list when no test_core version is found', () {
+        writePubspec();
+        // A lock file without a test_core entry ends the lookup within
+        // the sandbox.
+        File(
+          join(pkgDir.path, 'pubspec.lock'),
+        ).writeAsStringSync('packages:\n  args:\n    version: "2.4.2"\n');
+        expect(Tests.coveragePackageArgs(pkgDir), isEmpty);
+      });
+
+      group('resolvedTestCoreVersion', () {
+        test('reads the version from the package directory', () {
+          writeLock('0.6.16');
+          expect(Tests.resolvedTestCoreVersion(pkgDir), '0.6.16');
+        });
+
+        test('falls back to an ancestor directory (pub workspace)', () {
+          writeLock('0.6.15', into: pkgDir);
+          final memberDir = Directory(join(pkgDir.path, 'packages', 'member'))
+            ..createSync(recursive: true);
+          expect(Tests.resolvedTestCoreVersion(memberDir), '0.6.15');
+        });
+
+        test('parses lock files with CRLF line endings', () {
+          writeLock('0.6.15', lineEnding: '\r\n');
+          expect(Tests.resolvedTestCoreVersion(pkgDir), '0.6.15');
+        });
+
+        test('returns null when the lock file has no test_core entry', () {
+          File(
+            join(pkgDir.path, 'pubspec.lock'),
+          ).writeAsStringSync('packages:\n  args:\n    version: "2.4.2"\n');
+          expect(Tests.resolvedTestCoreVersion(pkgDir), isNull);
+        });
+
+        test('returns null when no pubspec.lock exists', () {
+          // stopAt keeps the ancestor walk inside the test sandbox.
+          expect(Tests.resolvedTestCoreVersion(pkgDir, stopAt: pkgDir), isNull);
+        });
+      });
+
+      group('versionIsAtLeast', () {
+        test('compares major, minor and patch parts', () {
+          expect(Tests.versionIsAtLeast('0.6.15', '0.6.15'), isTrue);
+          expect(Tests.versionIsAtLeast('0.6.16', '0.6.15'), isTrue);
+          expect(Tests.versionIsAtLeast('0.7.0', '0.6.15'), isTrue);
+          expect(Tests.versionIsAtLeast('1.0.0', '0.6.15'), isTrue);
+          expect(Tests.versionIsAtLeast('0.6.14', '0.6.15'), isFalse);
+          expect(Tests.versionIsAtLeast('0.5.20', '0.6.15'), isFalse);
+        });
+
+        test('ignores pre-release and build suffixes', () {
+          expect(Tests.versionIsAtLeast('0.6.15-dev.1', '0.6.15'), isTrue);
+          expect(Tests.versionIsAtLeast('0.6.16+2', '0.6.15'), isTrue);
+        });
+
+        test('returns false for unparseable versions', () {
+          expect(Tests.versionIsAtLeast('any', '0.6.15'), isFalse);
+          expect(Tests.versionIsAtLeast('0.6.15', 'any'), isFalse);
+        });
+      });
+
+      group('is wired into the dart test invocation', () {
+        late MockGgProcessWrapper wrapper;
+        List<String>? capturedArgs;
+
+        Future<void> runTestsCommand() async {
+          // A minimal Dart package passing the missing-test-files check
+          Directory(
+            join(pkgDir.path, 'lib', 'src'),
+          ).createSync(recursive: true);
+          File(
+            join(pkgDir.path, 'lib', 'src', 'foo.dart'),
+          ).writeAsStringSync('void foo() {}\n');
+          Directory(join(pkgDir.path, 'test')).createSync(recursive: true);
+          File(
+            join(pkgDir.path, 'test', 'foo_test.dart'),
+          ).writeAsStringSync('void main() {}\n');
+
+          wrapper = MockGgProcessWrapper();
+          capturedArgs = null;
+
+          when(
+            () => wrapper.start(
+              any(),
+              any(),
+              workingDirectory: any(named: 'workingDirectory'),
+            ),
+          ).thenAnswer((invocation) async {
+            capturedArgs = invocation.positionalArguments[1] as List<String>;
+            // Exit with an error to stop the command right after the
+            // test process ran — coverage parsing is not part of this
+            // test.
+            return GgFakeProcess()..exit(1);
+          });
+
+          final localRunner = CommandRunner<void>('test', 'test')
+            ..addCommand(Tests(ggLog: messages.add, processWrapper: wrapper));
+
+          await expectLater(
+            localRunner.run(['tests', '--input', pkgDir.path]),
+            throwsA(isA<Exception>()),
+          );
+        }
+
+        test('passes --coverage-package when test_core supports it', () async {
+          writePubspec();
+          writeLock('0.6.15');
+          await runTestsCommand();
+          expect(
+            capturedArgs,
+            containsAllInOrder(['--coverage-package', '^my_pkg\$']),
+          );
+        });
+
+        test('omits --coverage-package when test_core is too old', () async {
+          writePubspec();
+          writeLock('0.6.14');
+          await runTestsCommand();
+          expect(capturedArgs, isNot(contains('--coverage-package')));
+          expect(capturedArgs, contains('--coverage'));
         });
       });
     });
