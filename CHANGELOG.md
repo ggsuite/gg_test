@@ -1,24 +1,25 @@
 # Changelog
 
-## [Unreleased]
+## Unreleased
 
 ### Changed
 
 - Support projects without manifest: ProjectType.none, checks skipped, version tracked as git tag only
+- gg\_multi: changed references to git
 
-## [2.2.5] - 2026-07-22
+## 2.2.5 - 2026-07-22
 
 ### Changed
 
 - gg\_multi: changed references to git
 
-## [2.2.4] - 2026-07-20
+## 2.2.4 - 2026-07-20
 
 ### Changed
 
 - gg\_multi: changed references to git
 
-## [2.2.3] - 2026-07-05
+## 2.2.3 - 2026-07-05
 
 ### Changed
 
@@ -29,19 +30,19 @@
 
 - Generated test boilerplate reads the package name from pubspec.yaml instead of deriving it from the folder name
 
-## [2.2.2] - 2026-06-26
+## 2.2.2 - 2026-06-26
 
 ### Changed
 
 - gg\_multi: changed references to git
 
-## [2.2.1] - 2026-06-25
+## 2.2.1 - 2026-06-25
 
 ### Fixed
 
 - Revert org-prefixed repo folders (ticket org\_prefix\_folders); keep gg\_cross\_language\_deps
 
-## [2.2.0] - 2026-06-19
+## 2.2.0 - 2026-06-19
 
 ### Changed
 
@@ -50,9 +51,9 @@
 - Introduce checkProjectType() as single source of truth for bridge->TypeScript check rule; add .example() real-instance factories & P:\programs\flutter/bin/internal/exit\_with\_errorlevel.bat
 - gg\_multi: changed references to git
 
-## [2.1.1] - 2026-06-11
+## 2.1.1 - 2026-06-11
 
-## [2.1.0] - 2026-06-08
+## 2.1.0 - 2026-06-08
 
 ### Changed
 
@@ -61,9 +62,9 @@
 - gg\_multi: changed references to git
 - Gg Multi: changed references to pub.dev
 
-## [2.0.1] - 2026-05-04
+## 2.0.1 - 2026-05-04
 
-## [2.0.0] - 2026-04-20
+## 2.0.0 - 2026-04-20
 
 ### Added
 
@@ -74,7 +75,7 @@
 - kidney: changed references to path
 - kidney: changed references to git
 
-## [1.1.8] - 2026-03-08
+## 1.1.8 - 2026-03-08
 
 ### Added
 
@@ -84,99 +85,99 @@
 
 - Remove copy right header from generated test files
 
-## [1.1.7] - 2025-07-31
+## 1.1.7 - 2025-07-31
 
 ### Changed
 
 - change is\_flutter to isFlutterDir to support input directory that differs from Directory.current
 
-## [1.1.6] - 2025-07-09
+## 1.1.6 - 2025-07-09
 
 ### Fixed
 
 - Fix regex bug on windows
 
-## [1.1.5] - 2025-06-07
+## 1.1.5 - 2025-06-07
 
 ### Fixed
 
 - Fixed missing error details
 
-## [1.1.4] - 2025-06-07
+## 1.1.4 - 2025-06-07
 
 ### Changed
 
 - Output details about test errors
 - Update to dart 2.8
 
-## [1.1.3] - 2024-09-04
+## 1.1.3 - 2024-09-04
 
 ### Changed
 
 - Exclude l10 from coverage
 
-## [1.1.2] - 2024-09-04
+## 1.1.2 - 2024-09-04
 
 ### Changed
 
 - Don't expect tests for l10n folders
 
-## [1.1.1] - 2024-08-30
+## 1.1.1 - 2024-08-30
 
 ### Changed
 
 - Run unit tests on MacOS
 
-## [1.1.0] - 2024-08-30
+## 1.1.0 - 2024-08-30
 
 ### Changed
 
 - Make unit tests work on Mac
 
-## [1.0.20] - 2024-08-24
+## 1.0.20 - 2024-08-24
 
 ### Changed
 
 - Show error details on github
 
-## [1.0.19] - 2024-08-24
+## 1.0.19 - 2024-08-24
 
 ### Changed
 
 - Disabled error details when running tests
 
-## [1.0.18] - 2024-06-21
+## 1.0.18 - 2024-06-21
 
 ### Fixed
 
 - Fix: Coverage for files containing no functions was estimated wrongly.
 
-## [1.0.17] - 2024-06-21
+## 1.0.17 - 2024-06-21
 
 ### Changed
 
 - Ignore generated files i.e. files ending with .g.dart
 
-## [1.0.16] - 2024-04-30
+## 1.0.16 - 2024-04-30
 
 ### Changed
 
 - Generated test file: Renamed test into example
 
-## [1.0.15] - 2024-04-29
+## 1.0.15 - 2024-04-29
 
 ### Changed
 
 - Update install script
 - Slightly changed auto generated test file
 
-## [1.0.14] - 2024-04-27
+## 1.0.14 - 2024-04-27
 
 ### Fixed
 
 - Fix an error in auto generated test files
 
-## [1.0.13] - 2024-04-13
+## 1.0.13 - 2024-04-13
 
 ### Changed
 
@@ -193,13 +194,13 @@
 
 - Upgrade dependencies
 
-## [1.0.11] - 2024-04-09
+## 1.0.11 - 2024-04-09
 
 ### Removed
 
 - 'Pipline: Disable cache'
 
-## [1.0.10] - 2024-04-09
+## 1.0.10 - 2024-04-09
 
 ### Added
 
@@ -248,34 +249,3 @@
 ## 1.0.2 - 2024-01-01
 
 - Initial version.
-
-[Unreleased]: https://github.com/inlavigo/gg_test/compare/2.2.5...HEAD
-[2.2.5]: https://github.com/inlavigo/gg_test/compare/2.2.4...2.2.5
-[2.2.4]: https://github.com/inlavigo/gg_test/compare/2.2.3...2.2.4
-[2.2.3]: https://github.com/inlavigo/gg_test/compare/2.2.2...2.2.3
-[2.2.2]: https://github.com/inlavigo/gg_test/compare/2.2.1...2.2.2
-[2.2.1]: https://github.com/inlavigo/gg_test/compare/2.2.0...2.2.1
-[2.2.0]: https://github.com/inlavigo/gg_test/compare/2.1.1...2.2.0
-[2.1.1]: https://github.com/inlavigo/gg_test/compare/2.1.0...2.1.1
-[2.1.0]: https://github.com/inlavigo/gg_test/compare/2.0.1...2.1.0
-[2.0.1]: https://github.com/inlavigo/gg_test/compare/2.0.0...2.0.1
-[2.0.0]: https://github.com/inlavigo/gg_test/compare/1.1.8...2.0.0
-[1.1.8]: https://github.com/inlavigo/gg_test/compare/1.1.7...1.1.8
-[1.1.7]: https://github.com/inlavigo/gg_test/compare/1.1.6...1.1.7
-[1.1.6]: https://github.com/inlavigo/gg_test/compare/1.1.5...1.1.6
-[1.1.5]: https://github.com/inlavigo/gg_test/compare/1.1.4...1.1.5
-[1.1.4]: https://github.com/inlavigo/gg_test/compare/1.1.3...1.1.4
-[1.1.3]: https://github.com/inlavigo/gg_test/compare/1.1.2...1.1.3
-[1.1.2]: https://github.com/inlavigo/gg_test/compare/1.1.1...1.1.2
-[1.1.1]: https://github.com/inlavigo/gg_test/compare/1.1.0...1.1.1
-[1.1.0]: https://github.com/inlavigo/gg_test/compare/1.0.20...1.1.0
-[1.0.20]: https://github.com/inlavigo/gg_test/compare/1.0.19...1.0.20
-[1.0.19]: https://github.com/inlavigo/gg_test/compare/1.0.18...1.0.19
-[1.0.18]: https://github.com/inlavigo/gg_test/compare/1.0.17...1.0.18
-[1.0.17]: https://github.com/inlavigo/gg_test/compare/1.0.16...1.0.17
-[1.0.16]: https://github.com/inlavigo/gg_test/compare/1.0.15...1.0.16
-[1.0.15]: https://github.com/inlavigo/gg_test/compare/1.0.14...1.0.15
-[1.0.14]: https://github.com/inlavigo/gg_test/compare/1.0.13...1.0.14
-[1.0.13]: https://github.com/inlavigo/gg_test/compare/1.0.12...1.0.13
-[1.0.11]: https://github.com/inlavigo/gg_test/compare/1.0.10...1.0.11
-[1.0.10]: https://github.com/inlavigo/gg_test/compare/1.0.9...1.0.10
