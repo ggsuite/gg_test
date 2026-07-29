@@ -392,6 +392,27 @@ void main() {
           },
         );
 
+        test('skips tests for a project without a manifest', () async {
+          final noneDir = Directory.systemTemp.createTempSync('gg_test_none_');
+
+          final fakeRunner = _FakeTypeScriptTestRunner();
+          final localRunner = CommandRunner<void>('test', 'test')
+            ..addCommand(
+              Tests(ggLog: messages.add, typeScriptTestRunner: fakeRunner),
+            );
+
+          try {
+            await localRunner.run(['tests', '--input', noneDir.path]);
+            expect(fakeRunner.invocations, 0);
+            expect(
+              messages.last,
+              contains('Skipping tests (no project manifest)'),
+            );
+          } finally {
+            noneDir.deleteSync(recursive: true);
+          }
+        });
+
         test('propagates failures from the TypeScriptTestRunner', () async {
           final tsDir = Directory.systemTemp.createTempSync('gg_test_ts_');
           File(join(tsDir.path, 'package.json')).writeAsStringSync('{}');
