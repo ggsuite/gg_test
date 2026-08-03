@@ -32,16 +32,11 @@ class Tests extends DirCommand<void> {
     required super.ggLog,
     this.processWrapper = const GgProcessWrapper(),
     TypeScriptTestRunner? typeScriptTestRunner,
-    OutputRoot? outputRoot,
   }) : _typeScriptTestRunner =
            typeScriptTestRunner ?? const TypeScriptTestRunner(),
-       _outputRoot = outputRoot ?? const OutputRoot(),
        super(name: 'tests', description: 'Runs the project test suite.');
 
   final TypeScriptTestRunner _typeScriptTestRunner;
-
-  /// Determines the directory error pathes are printed relative to
-  final OutputRoot _outputRoot;
 
   /// Pathes that will be excluded vom coverage
   static final foldersExcludedFromCoverage = ['l10n'];
@@ -73,10 +68,6 @@ class Tests extends DirCommand<void> {
     // Save directories
     _coverageDir = Directory(join(directory.path, 'coverage'));
     _srcDir = Directory(join(directory.path, 'lib', 'src'));
-
-    // Determine the directory error pathes are printed relative to
-    _initPathPrefix(directory);
-
     // Init status printer
     final isFlutter = isFlutterDir(directory);
     final statusPrinter = GgStatusPrinter<void>(
@@ -117,48 +108,6 @@ class Tests extends DirCommand<void> {
   final _messages = <String>[];
   late Directory _coverageDir;
   late Directory _srcDir;
-
-  /// The directory error pathes are printed relative to. `null` means that
-  /// absolute pathes are printed.
-  Directory? _root;
-
-  /// The prefix that turns a package relative path into a [_root] relative
-  /// one. Uses forward slashes. Is empty when package and root are the same.
-  String _pathPrefix = '';
-
-  // ...........................................................................
-  void _initPathPrefix(Directory packageDir) {
-    final package = OutputRoot.resolve(packageDir.absolute.path);
-    final foundRoot = _outputRoot.get(packageDir);
-    _root = foundRoot == null
-        ? null
-        : Directory(OutputRoot.resolve(foundRoot.path));
-
-    final root = _root;
-    final prefix = root == null ? package : relative(package, from: root.path);
-
-    _pathPrefix = (prefix == '.' || prefix.isEmpty)
-        ? ''
-        : '${prefix.replaceAll(r'\', '/')}/';
-  }
-
-  // ...........................................................................
-  /// Turns a package relative path into a path relative to the VSCode root.
-  String _fromRoot(String packageRelativePath) =>
-      '$_pathPrefix$packageRelativePath';
-
-  // ...........................................................................
-  /// Turns an absolute path into a path relative to the VSCode root.
-  String _absoluteFromRoot(String absolutePath) {
-    final root = _root;
-    final path = OutputRoot.resolve(absolutePath);
-    return root == null ? path : relative(path, from: root.path);
-  }
-
-  // ...........................................................................
-  /// Prefixes all test error pathes within [message] with [_pathPrefix].
-  String _prefixErrorPathes(String message) =>
-      ErrorInfoReader().prefixErrorPathes(message, _pathPrefix);
 
   // ...........................................................................
   void _logErrors(List<String> messages, List<String> errors) {
@@ -542,14 +491,14 @@ class Tests extends DirCommand<void> {
   }
 
   // ...........................................................................
-  void _printMissingLines(_MissingLines missingLines) {
+  void _printMissingLines(_MissingLines missingLines, Directory dir) {
     for (final script in missingLines.keys) {
       final testFile = script
           .replaceFirst('lib/src'.os, 'test')
           .replaceAll('.dart', '_test.dart');
 
-      final relativeTestFile = _absoluteFromRoot(testFile);
-      final relativeScript = _absoluteFromRoot(script);
+      final relativeTestFile = relative(testFile, from: dir.path);
+      final relativeScript = relative(script, from: dir.path);
 
       const bool printFirstOnly = true;
       final lineNumbers = missingLines[script]!;
@@ -662,9 +611,9 @@ void main() {
 
       // Create boilerplate file
       testFile.writeAsStringSync(boilerplate);
-      final relativeTestFile = cError(_absoluteFromRoot(testFile.path));
+      final relativeTestFile = cError(relative(testFile.path, from: dir.path));
       final relativeSrcFile = brightBlack(
-        _absoluteFromRoot(implementationFile.path),
+        relative(implementationFile.path, from: dir.path),
       );
 
       // Print message
@@ -702,11 +651,13 @@ void main() {
   }
 
   // ...........................................................................
-  void _printUntestedFiles(Iterable<(File, File)> files) {
+  void _printUntestedFiles(Iterable<(File, File)> files, Directory dir) {
     for (final tuple in files) {
       final (implementation, test) = tuple;
-      final srcFileRelative = blue(_absoluteFromRoot(implementation.path));
-      final testFileRelative = cError(_absoluteFromRoot(test.path));
+      final srcFileRelative = blue(
+        relative(implementation.path, from: dir.path),
+      );
+      final testFileRelative = cError(relative(test.path, from: dir.path));
 
       _messages.add('- $testFileRelative');
       _messages.add('  $srcFileRelative');
@@ -773,9 +724,7 @@ void main() {
       if (newErrorLines.isNotEmpty &&
           !errorLines.contains(newErrorLines.first)) {
         // Print error line
-        final newErrorLinesString = cError(
-          newErrorLines.map((e) => _fromRoot(e).os).join(',\n   '),
-        );
+        final newErrorLinesString = cError(newErrorLines.join(',\n   ').os);
         _messages.add(' - $newErrorLinesString');
 
         // Print details
@@ -783,7 +732,7 @@ void main() {
           previousMessagesBelongingToError,
         );
         for (var message in cleanedMessage) {
-          _messages.add(brightBlack(_prefixErrorPathes(message)));
+          _messages.add(brightBlack(message));
         }
 
         isError = false;
@@ -846,7 +795,7 @@ void main() {
     final untestedFiles = _findUntestedFiles(report, files);
     if (untestedFiles.isNotEmpty) {
       _messages.add(yellow('Please add valid tests to the following files:'));
-      _printUntestedFiles(untestedFiles);
+      _printUntestedFiles(untestedFiles, dir);
       return (1, _messages, _errors);
     }
 
@@ -865,7 +814,7 @@ void main() {
           ? _estimateMissingLines(report)
           : _MissingLines();
 
-      _printMissingLines(missingLines);
+      _printMissingLines(missingLines, dir);
 
       return (1, _messages, _errors);
     } else {
