@@ -7,7 +7,6 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:gg_console_colors/gg_console_colors.dart';
 import 'package:gg_is_flutter/gg_is_flutter.dart';
 import 'package:gg_process/gg_process.dart';
 import 'package:gg_test/gg_test.dart';
@@ -132,11 +131,14 @@ void main() {
                 await expectLater(
                   runner.run(['tests', '--input', input()]),
                   throwsA(
-                    isA<Exception>()
-                        .having((e) => e.toString().split('\n'), 'message', [
-                          'Exception: Tests failed',
-                          yellow('Run "${blue('dart test')}" to see details.'),
-                        ]),
+                    isA<Exception>().having(
+                      (e) => rmControls(e.toString()).split('\n'),
+                      'message',
+                      [
+                        'Exception: Tests failed',
+                        'Run "dart test" to see details.',
+                      ],
+                    ),
                   ),
                 );
                 expect(messages, [
@@ -170,11 +172,14 @@ void main() {
                 await expectLater(
                   runner.run(['tests', '--input', input()]),
                   throwsA(
-                    isA<Exception>()
-                        .having((e) => e.toString().split('\n'), 'message', [
-                          'Exception: Tests failed',
-                          yellow('Run "${blue('dart test')}" to see details.'),
-                        ]),
+                    isA<Exception>().having(
+                      (e) => rmControls(e.toString()).split('\n'),
+                      'message',
+                      [
+                        'Exception: Tests failed',
+                        'Run "dart test" to see details.',
+                      ],
+                    ),
                   ),
                 );
 
@@ -205,11 +210,14 @@ void main() {
                 await expectLater(
                   runner.run(['tests', '--input', input()]),
                   throwsA(
-                    isA<Exception>()
-                        .having((e) => e.toString().split('\n'), 'message', [
-                          'Exception: Tests failed',
-                          yellow('Run "${blue('dart test')}" to see details.'),
-                        ]),
+                    isA<Exception>().having(
+                      (e) => rmControls(e.toString()).split('\n'),
+                      'message',
+                      [
+                        'Exception: Tests failed',
+                        'Run "dart test" to see details.',
+                      ],
+                    ),
                   ),
                 );
 
@@ -218,7 +226,7 @@ void main() {
 
                 expect(
                   messages[2].os,
-                  contains('Coverage not 100%. Untested code:'),
+                  contains('Please fix missing coverage:'),
                 );
 
                 expect(

@@ -96,7 +96,7 @@ class Tests extends DirCommand<void> {
     if (code != 0) {
       final command = blue('${isFlutter ? 'flutter' : 'dart'} test');
       throw Exception(
-        ['Tests failed', yellow('Run "$command" to see details.')].join('\n'),
+        ['Tests failed', cDetail('Run "$command" to see details.')].join('\n'),
       );
     }
   }
@@ -512,7 +512,7 @@ class Tests extends DirCommand<void> {
       final lineNumbers = missingLines[script]!;
       for (final lineNumber in lineNumbers) {
         // Don't print too many lines
-        var implementationRed = red('$relativeScript:$lineNumber');
+        var implementationRed = cError('$relativeScript:$lineNumber');
         var testFileBlue = blue(relativeTestFile);
 
         _messages.add('- $implementationRed');
@@ -619,7 +619,7 @@ void main() {
 
       // Create boilerplate file
       testFile.writeAsStringSync(boilerplate);
-      final relativeTestFile = red(relative(testFile.path, from: dir.path));
+      final relativeTestFile = cError(relative(testFile.path, from: dir.path));
       final relativeSrcFile = brightBlack(
         relative(implementationFile.path, from: dir.path),
       );
@@ -665,7 +665,7 @@ void main() {
       final srcFileRelative = blue(
         relative(implementation.path, from: dir.path),
       );
-      final testFileRelative = red(relative(test.path, from: dir.path));
+      final testFileRelative = cError(relative(test.path, from: dir.path));
 
       _messages.add('- $testFileRelative');
       _messages.add('  $srcFileRelative');
@@ -732,7 +732,7 @@ void main() {
       if (newErrorLines.isNotEmpty &&
           !errorLines.contains(newErrorLines.first)) {
         // Print error line
-        final newErrorLinesString = red(
+        final newErrorLinesString = cError(
           _addDotSlash(newErrorLines.join(',\n   ')),
         );
         _messages.add(' - $newErrorLinesString');
@@ -817,7 +817,7 @@ void main() {
     // Check coverage percentage
     if (percentage != 100.0) {
       // Print percentage
-      _messages.add(yellow('Coverage not 100%. Untested code:'));
+      _messages.add(yellow('Please fix missing coverage:'));
 
       // Print missing lines
       final missingLines = percentage < 100.0
