@@ -1,30 +1,36 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Rework console colors
+
 ## 2.3.0 - 2026-07-29
 
 ### Changed
 
 - Support projects without manifest: ProjectType.none, checks skipped, version tracked as git tag only
-- gg\_multi: changed references to git
+- gg_multi: changed references to git
 
 ## 2.2.5 - 2026-07-22
 
 ### Changed
 
-- gg\_multi: changed references to git
+- gg_multi: changed references to git
 
 ## 2.2.4 - 2026-07-20
 
 ### Changed
 
-- gg\_multi: changed references to git
+- gg_multi: changed references to git
 
 ## 2.2.3 - 2026-07-05
 
 ### Changed
 
 - Optimize performance: Cover only the package itself
-- Coverage collection for Dart packages is scoped to the package under test via `dart test --coverage-package` (requires test\_core >= 0.6.15, i.e. test >= 1.26.0). This speeds up test runs considerably because coverage of dependency libraries is no longer collected and parsed. Older test versions fall back to the previous unscoped behavior.
+- Coverage collection for Dart packages is scoped to the package under test via `dart test --coverage-package` (requires test_core >= 0.6.15, i.e. test >= 1.26.0). This speeds up test runs considerably because coverage of dependency libraries is no longer collected and parsed. Older test versions fall back to the previous unscoped behavior.
 
 ### Fixed
 
@@ -34,22 +40,22 @@
 
 ### Changed
 
-- gg\_multi: changed references to git
+- gg_multi: changed references to git
 
 ## 2.2.1 - 2026-06-25
 
 ### Fixed
 
-- Revert org-prefixed repo folders (ticket org\_prefix\_folders); keep gg\_cross\_language\_deps
+- Revert org-prefixed repo folders (ticket org_prefix_folders); keep gg_cross_language_deps
 
 ## 2.2.0 - 2026-06-19
 
 ### Changed
 
 - Treat dart-typescript bridge repos as TypeScript for can/do commit, running package.json scripts (test/lint/format:check)
-- Treat dart-typescript bridge repos as TypeScript for can/do review (npm install, skip dart pub get); export isBridgeProject from gg\_one
-- Introduce checkProjectType() as single source of truth for bridge->TypeScript check rule; add .example() real-instance factories & P:\programs\flutter/bin/internal/exit\_with\_errorlevel.bat
-- gg\_multi: changed references to git
+- Treat dart-typescript bridge repos as TypeScript for can/do review (npm install, skip dart pub get); export isBridgeProject from gg_one
+- Introduce checkProjectType() as single source of truth for bridge->TypeScript check rule; add .example() real-instance factories & P:\programs\flutter/bin/internal/exit_with_errorlevel.bat
+- gg_multi: changed references to git
 
 ## 2.1.1 - 2026-06-11
 
@@ -57,9 +63,9 @@
 
 ### Changed
 
-- feat: source TypeScript test command from gg\_lang catalog; use gg\_lang project detection
-- gg\_multi: changed references to git
-- gg\_multi: changed references to git
+- feat: source TypeScript test command from gg_lang catalog; use gg_lang project detection
+- gg_multi: changed references to git
+- gg_multi: changed references to git
 - Gg Multi: changed references to pub.dev
 
 ## 2.0.1 - 2026-05-04
@@ -89,7 +95,7 @@
 
 ### Changed
 
-- change is\_flutter to isFlutterDir to support input directory that differs from Directory.current
+- change is_flutter to isFlutterDir to support input directory that differs from Directory.current
 
 ## 1.1.6 - 2025-07-09
 
@@ -185,7 +191,7 @@
 
 ### Removed
 
-- dependency to gg\_install\_gg, remove ./check script
+- dependency to gg_install_gg, remove ./check script
 - dependency pana
 
 ## 1.0.12 - 2024-04-11
@@ -212,7 +218,7 @@
 - Rework changelog
 - Pipelines
 - 'Github Actions Pipeline'
-- Exclude sample\_project from analyzer
+- Exclude sample_project from analyzer
 
 ### Fixed
 

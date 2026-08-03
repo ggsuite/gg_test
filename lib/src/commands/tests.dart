@@ -826,7 +826,7 @@ void main() {
 
       return (1, _messages, _errors);
     } else {
-      _messages.add('✅ Coverage is 100%!');
+      _messages.add('✓ Coverage is 100%!');
       return (error, _messages, _errors);
     }
   }
