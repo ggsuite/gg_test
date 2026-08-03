@@ -5,6 +5,7 @@
 ### Changed
 
 - Rework console colors
+- Improve cli log and colors
 
 ## 2.3.0 - 2026-07-29
 

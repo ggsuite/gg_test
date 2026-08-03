@@ -55,6 +55,7 @@ class Tests extends DirCommand<void> {
       final statusPrinter = GgStatusPrinter<void>(
         message: 'Skipping tests (no project manifest)',
         ggLog: ggLog,
+        dark: true,
       );
       statusPrinter.status = GgStatusPrinterStatus.success;
       return;
@@ -74,6 +75,7 @@ class Tests extends DirCommand<void> {
           ? 'Running "flutter test --coverage"'
           : 'Running "dart test"',
       ggLog: ggLog,
+      dark: true,
     );
 
     statusPrinter.status = GgStatusPrinterStatus.running;
