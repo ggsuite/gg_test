@@ -7,13 +7,13 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:gg_console_colors/gg_console_colors.dart';
 import 'package:gg_is_flutter/gg_is_flutter.dart';
 import 'package:gg_process/gg_process.dart';
 import 'package:gg_test/gg_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
+import 'package:gg_status_printer/gg_status_printer.dart';
 
 void main() {
   late Directory tmp;
@@ -71,7 +71,7 @@ void main() {
   Future<void> initCommandAndRunner() async {
     runner = CommandRunner<void>('check', 'Check');
 
-    testCmd = Tests(ggLog: messages.add);
+    testCmd = Tests(ggLog: (msg) => messages.add(rmControls(msg)));
     runner.addCommand(testCmd);
   }
 
@@ -131,27 +131,25 @@ void main() {
                 await expectLater(
                   runner.run(['tests', '--input', input()]),
                   throwsA(
-                    isA<Exception>()
-                        .having((e) => e.toString().split('\n'), 'message', [
-                          'Exception: Tests failed',
-                          yellow('Run "${blue('dart test')}" to see details.'),
-                        ]),
+                    isA<Exception>().having(
+                      (e) => rmControls(e.toString()).split('\n'),
+                      'message',
+                      [
+                        'Exception: Tests failed',
+                        'Run "dart test" to see details.',
+                      ],
+                    ),
                   ),
                 );
-
-                // Right logs should be written
-                expect(messages[0], contains('⌛️ Running "dart test"'));
-                expect(messages[1], contains('❌ Running "dart test"'));
-
-                expect(
-                  messages[2].os,
-                  contains(red('test/simple_base_test.dart'.os)),
-                );
-
-                expect(
-                  messages[2].os,
-                  contains(brightBlack('lib/src/simple_base.dart'.os)),
-                );
+                expect(messages, [
+                  '⌛️ Running "dart test"',
+                  '✗ Running "dart test"',
+                  [
+                    'Tests were created. Please revise:',
+                    '- test/simple_base_test.dart'.os,
+                    '  lib/src/simple_base.dart'.os,
+                  ].join(('\n')),
+                ]);
               },
             );
 
@@ -174,33 +172,27 @@ void main() {
                 await expectLater(
                   runner.run(['tests', '--input', input()]),
                   throwsA(
-                    isA<Exception>()
-                        .having((e) => e.toString().split('\n'), 'message', [
-                          'Exception: Tests failed',
-                          yellow('Run "${blue('dart test')}" to see details.'),
-                        ]),
+                    isA<Exception>().having(
+                      (e) => rmControls(e.toString()).split('\n'),
+                      'message',
+                      [
+                        'Exception: Tests failed',
+                        'Run "dart test" to see details.',
+                      ],
+                    ),
                   ),
                 );
 
                 // Expect exception
-                expect(messages[0], contains('⌛️ Running "dart test"'));
-                expect(messages[1], contains('❌ Running "dart test"'));
-                expect(
-                  messages[2],
-                  contains(
-                    yellow('Please add valid tests to the following files:'),
-                  ),
-                );
-
-                expect(
-                  messages[2].os,
-                  contains(red('test/simple_base_test.dart'.os)),
-                );
-
-                expect(
-                  messages[2].os,
-                  contains(blue('lib/src/simple_base.dart'.os)),
-                );
+                expect(messages, [
+                  '⌛️ Running "dart test"',
+                  '✗ Running "dart test"',
+                  [
+                    'Please add valid tests to the following files:',
+                    '- test/simple_base_test.dart'.os,
+                    '  lib/src/simple_base.dart'.os,
+                  ].join('\n'),
+                ]);
               },
             );
 
@@ -218,30 +210,33 @@ void main() {
                 await expectLater(
                   runner.run(['tests', '--input', input()]),
                   throwsA(
-                    isA<Exception>()
-                        .having((e) => e.toString().split('\n'), 'message', [
-                          'Exception: Tests failed',
-                          yellow('Run "${blue('dart test')}" to see details.'),
-                        ]),
+                    isA<Exception>().having(
+                      (e) => rmControls(e.toString()).split('\n'),
+                      'message',
+                      [
+                        'Exception: Tests failed',
+                        'Run "dart test" to see details.',
+                      ],
+                    ),
                   ),
                 );
 
                 expect(messages[0], contains('⌛️ Running "dart test"'));
-                expect(messages[1], contains('❌ Running "dart test"'));
+                expect(messages[1], contains('✗ Running "dart test"'));
 
                 expect(
                   messages[2].os,
-                  contains(yellow('Coverage not 100%. Untested code:')),
+                  contains('Please fix missing coverage:'),
                 );
 
                 expect(
                   messages[2].os,
-                  contains('- ${red('lib/src/simple_base.dart:8'.os)}'),
+                  contains('- ${'lib/src/simple_base.dart:8'.os}'),
                 );
 
                 expect(
                   messages[2].os,
-                  contains('  ${blue('test/simple_base_test.dart'.os)}'),
+                  contains('  ${'test/simple_base_test.dart'.os}'),
                 );
               },
             );
@@ -261,20 +256,23 @@ void main() {
               await expectLater(
                 runner.run(['tests', '--input', input()]),
                 throwsA(
-                  isA<Exception>()
-                      .having((e) => e.toString().split('\n'), 'message', [
-                        'Exception: Tests failed',
-                        yellow('Run "${blue('dart test')}" to see details.'),
-                      ]),
+                  isA<Exception>().having(
+                    (e) => rmControls(e.toString()).split('\n'),
+                    'message',
+                    [
+                      'Exception: Tests failed',
+                      'Run "dart test" to see details.',
+                    ],
+                  ),
                 ),
               );
 
               // Expect exception
               expect(messages[0], contains('⌛️ Running "dart test"'));
-              expect(messages[1], contains('❌ Running "dart test"'));
+              expect(messages[1], contains('✗ Running "dart test"'));
               expect(
                 messages[2],
-                contains(red('./test/simple_base_test.dart:17:7'.os)),
+                contains('./test/simple_base_test.dart:17:7'.os),
               );
               expect(messages[2].os, contains('Expected: <2>'));
               expect(messages[2].os, contains('Actual: <1>'));
@@ -286,7 +284,7 @@ void main() {
               test('and code coverage is 100%', () async {
                 if (isRelative) Directory.current = sampleProject;
                 await runner.run(['tests', '--input', input()]);
-                expect(messages.last, contains('✅ Running "dart test"'));
+                expect(messages.last, contains('✓ Running "dart test"'));
               });
             });
 
@@ -331,7 +329,7 @@ void main() {
               );
               expect(
                 messages[1],
-                contains('✅ Running "flutter test --coverage"'),
+                contains('✓ Running "flutter test --coverage"'),
               );
             });
           });

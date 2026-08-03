@@ -53,6 +53,7 @@ class TypeScriptTestRunner {
     final statusPrinter = GgStatusPrinter<void>(
       message: 'Running "$label"',
       ggLog: ggLog,
+      dark: true,
     );
     statusPrinter.status = GgStatusPrinterStatus.running;
 

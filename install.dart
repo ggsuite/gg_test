@@ -28,8 +28,8 @@ void main() {
   ]);
 
   if (result.stderr.toString().trim().isNotEmpty) {
-    print(red('❌ ${result.stderr.toString().trim()}'));
+    print(cError('✗ ${result.stderr.toString().trim()}'));
     return;
   }
-  print(green('✅ Installed $exe.'));
+  print(green('✓ Installed $exe.'));
 }

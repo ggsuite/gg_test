@@ -11,6 +11,7 @@ import 'package:gg_test/src/tools/type_script_test_runner.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
+import 'package:gg_status_printer/gg_status_printer.dart';
 
 void main() {
   final messages = <String>[];
@@ -55,14 +56,17 @@ void main() {
       stubRun(ProcessResult(1, 0, '', ''));
 
       final runner = TypeScriptTestRunner(processWrapper: processWrapper);
-      await runner.run(directory: tmp, ggLog: messages.add);
+      await runner.run(
+        directory: tmp,
+        ggLog: (msg) => messages.add(rmControls(msg)),
+      );
 
       final captured = captureRun();
       expect(captured[0], 'pnpm');
       expect(captured[1], ['exec', 'vitest', 'run', '--coverage']);
       expect(captured[2], tmp.path);
       expect(messages[0], contains('⌛️ Running "vitest run --coverage"'));
-      expect(messages[1], contains('✅ Running "vitest run --coverage"'));
+      expect(messages[1], contains('✓ Running "vitest run --coverage"'));
     });
 
     test('runs "yarn vitest run --coverage" on a yarn project', () async {
@@ -99,14 +103,17 @@ void main() {
       stubRun(ProcessResult(1, 0, '', ''));
 
       final runner = TypeScriptTestRunner(processWrapper: processWrapper);
-      await runner.run(directory: tmp, ggLog: messages.add);
+      await runner.run(
+        directory: tmp,
+        ggLog: (msg) => messages.add(rmControls(msg)),
+      );
 
       final captured = captureRun();
       expect(captured[0], 'pnpm');
       expect(captured[1], ['run', 'test']);
       expect(captured[2], tmp.path);
       expect(messages[0], contains('⌛️ Running "pnpm run test"'));
-      expect(messages[1], contains('✅ Running "pnpm run test"'));
+      expect(messages[1], contains('✓ Running "pnpm run test"'));
     });
 
     test('throws and echoes tool output when vitest exits non-zero', () async {
