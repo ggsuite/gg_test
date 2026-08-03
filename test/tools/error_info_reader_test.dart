@@ -35,6 +35,43 @@ void main() {
     });
   });
 
+  group('prefixErrorPathes(message, prefix)', () {
+    test('returns the message unchanged when prefix is empty', () {
+      const message = 'test/gg_test.dart:36:9  main.<fn>';
+      expect(errorInfoReader.prefixErrorPathes(message, ''), message);
+    });
+
+    test('prefixes all test error pathes', () {
+      final message = [
+        'Expected: <2>',
+        '  test/gg_test.dart:36:9  main.<fn>',
+        '  test/sub/other_test.dart:7:3  main.<fn>',
+      ].join('\n');
+
+      final result = errorInfoReader.prefixErrorPathes(
+        message,
+        'ggsuite/gg_one/',
+      );
+
+      expect(
+        result,
+        [
+          'Expected: <2>',
+          '  ${'ggsuite/gg_one/test/gg_test.dart:36:9'.os}  main.<fn>',
+          '  ${'ggsuite/gg_one/test/sub/other_test.dart:7:3'.os}  main.<fn>',
+        ].join('\n'),
+      );
+    });
+
+    test('does not touch lines without test error pathes', () {
+      const message = 'package:matcher/src/expect/expect.dart 149:31  fail';
+      expect(
+        errorInfoReader.prefixErrorPathes(message, 'ggsuite/gg_one/'),
+        message,
+      );
+    });
+  });
+
   group('cleanupTestErrors', () {
     test('removes not needed information from error strings', () {
       final message = [

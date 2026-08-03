@@ -15,10 +15,22 @@ import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:gg_status_printer/gg_status_printer.dart';
 
+/// Allows tests to control the directory error pathes are printed relative to
+class _FakeOutputRoot extends OutputRoot {
+  _FakeOutputRoot(this.rootBuilder);
+
+  final Directory? Function() rootBuilder;
+
+  @override
+  Directory? get(Directory packageDir, {Directory? currentDirectory}) =>
+      rootBuilder();
+}
+
 void main() {
   late Directory tmp;
   late Directory d;
   late Directory sampleProject;
+  Directory? outputRoot;
   final Directory currentDir = Directory.current;
   late File srcFile;
   late File testFile;
@@ -71,7 +83,12 @@ void main() {
   Future<void> initCommandAndRunner() async {
     runner = CommandRunner<void>('check', 'Check');
 
-    testCmd = Tests(ggLog: (msg) => messages.add(rmControls(msg)));
+    outputRoot = sampleProject;
+
+    testCmd = Tests(
+      ggLog: (msg) => messages.add(rmControls(msg)),
+      outputRoot: _FakeOutputRoot(() => outputRoot),
+    );
     runner.addCommand(testCmd);
   }
 
@@ -272,10 +289,38 @@ void main() {
               expect(messages[1], contains('✗ Running "dart test"'));
               expect(
                 messages[2],
-                contains('./test/simple_base_test.dart:17:7'.os),
+                contains('test/simple_base_test.dart:17:7'.os),
               );
               expect(messages[2].os, contains('Expected: <2>'));
               expect(messages[2].os, contains('Actual: <1>'));
+            });
+
+            test('if there failing unit tests, with pathes relative to the '
+                'VSCode root', () async {
+              if (isRelative) Directory.current = sampleProject;
+
+              // The VSCode root is the parent of the package,
+              // e.g. the workspace folder of a ticket
+              outputRoot = d;
+
+              testFile.writeAsStringSync(
+                testFileContent.replaceAll('// PLACEHOLDER', 'expect(1, 2);'),
+              );
+
+              await expectLater(
+                runner.run(['tests', '--input', input()]),
+                throwsA(isA<Exception>()),
+              );
+
+              // The error line is clickable from the VSCode root.
+              // It must not be prefixed with './' because VSCode does not
+              // resolve such pathes.
+              expect(
+                messages[2],
+                contains(
+                  '- ${'sample_project/test/simple_base_test.dart:17:7'.os}',
+                ),
+              );
             });
           });
 

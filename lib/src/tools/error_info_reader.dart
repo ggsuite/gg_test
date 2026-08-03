@@ -57,13 +57,44 @@ class ErrorInfoReader {
   }
 
   // ...........................................................................
+  /// Matches test error pathes like `test/foo_test.dart:12:7`.
+  // coverage:ignore-start
+  static final errorLineExp = RegExp(
+    r'(test|src)[\\/][\\/\w]+\.dart[\s:]*\d+:\d+',
+  );
+  // coverage:ignore-end
+
+  // ...........................................................................
+  /// Like [errorLineExp], but does not match pathes that are part of a
+  /// package uri like `package:matcher/src/expect/expect.dart 149:31`.
+  // coverage:ignore-start
+  static final prefixableErrorLineExp = RegExp(
+    r'(?<![\w:\\/])(?:lib[\\/])?(?:test|src)[\\/][\\/\w]+\.dart[\s:]*\d+:\d+',
+  );
+  // coverage:ignore-end
+
+  // ...........................................................................
+  /// Prefixes all test error pathes in [message] with [prefix].
+  ///
+  /// Use it to turn package relative pathes into pathes relative to the
+  /// folder VSCode was opened with.
+  String prefixErrorPathes(String message, String prefix) {
+    if (prefix.isEmpty) {
+      return message;
+    }
+
+    final osPrefix = prefix.os;
+
+    return message.replaceAllMapped(
+      prefixableErrorLineExp,
+      (match) => '$osPrefix${match.group(0)}',
+    );
+  }
+
+  // ...........................................................................
   /// Returns the error lines from a given message.
   List<String> extractErrorLines(String message) {
-    // Regular expression to match file paths and line numbers
-
-    // coverage:ignore-start
-    RegExp exp = RegExp(r'(test|src)[\\/][\\/\w]+\.dart[\s:]*\d+:\d+');
-    // coverage:ignore-end
+    final exp = errorLineExp;
 
     final matches = exp.allMatches(message);
     final result = <String>[];
