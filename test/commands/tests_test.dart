@@ -272,7 +272,7 @@ void main() {
               expect(messages[1], contains('✗ Running "dart test"'));
               expect(
                 messages[2],
-                contains('./test/simple_base_test.dart:17:7'.os),
+                contains('- ${'test/simple_base_test.dart:17:7'.os}'),
               );
               expect(messages[2].os, contains('Expected: <2>'));
               expect(messages[2].os, contains('Actual: <1>'));

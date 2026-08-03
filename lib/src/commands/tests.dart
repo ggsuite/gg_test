@@ -122,14 +122,6 @@ class Tests extends DirCommand<void> {
     }
   }
 
-  // ...........................................................................
-  String _addDotSlash(String relativeFile) {
-    if (!relativeFile.startsWith('./'.os)) {
-      return './$relativeFile'.os;
-    }
-    return relativeFile;
-  }
-
   // ..........................................................................
   _Report _generateReport(Directory dir) {
     return isFlutterDir(dir)
@@ -732,9 +724,7 @@ void main() {
       if (newErrorLines.isNotEmpty &&
           !errorLines.contains(newErrorLines.first)) {
         // Print error line
-        final newErrorLinesString = cError(
-          _addDotSlash(newErrorLines.join(',\n   ')),
-        );
+        final newErrorLinesString = cError(newErrorLines.join(',\n   ').os);
         _messages.add(' - $newErrorLinesString');
 
         // Print details

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.3.2 - 2026-08-03
+
+### Removed
+
+- Remove ./ from test error paths to allow directly opening it in vscode
+
 ## 2.3.1 - 2026-08-03
 
 ### Changed
