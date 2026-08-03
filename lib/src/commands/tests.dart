@@ -828,7 +828,8 @@ void main() {
 
       return (1, _messages, _errors);
     } else {
-      _messages.add('✓ Coverage is 100%!');
+      _messages.add(cDetail('✓ Coverage is 100%!'));
+      _messages.add('\n');
       return (error, _messages, _errors);
     }
   }
