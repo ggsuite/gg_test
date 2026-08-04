@@ -5,6 +5,7 @@
 ### Changed
 
 - Finetune command line output
+- Update dependencies
 
 ## 2.3.2 - 2026-08-03
 
