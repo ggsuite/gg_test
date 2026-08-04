@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.4.0 - 2026-08-04
+
+### Changed
+
+- Rename .master in .ocean
+
 ## 2.3.3 - 2026-08-04
 
 ### Changed
