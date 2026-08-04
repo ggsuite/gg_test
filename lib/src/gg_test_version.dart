@@ -9,4 +9,4 @@
 // coverage:ignore-file
 
 /// The version of the `gg_test` package.
-const String ggTestVersion = '2.3.2';
+const String ggTestVersion = '2.3.3';
