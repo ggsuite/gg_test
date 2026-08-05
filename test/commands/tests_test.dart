@@ -337,6 +337,57 @@ void main() {
       }
 
       // .......................................................................
+      group('for a project without implementation files', () {
+        // Regression: an empty repo made the coverage check divide 0 by 0,
+        // which yields NaN and therefore never equals 100.0. Additionally
+        // listing the missing lib/src folder threw a PathNotFoundException
+        // and "dart test" exits with 79 when it does not find any test.
+        test('should succeed if there are no lib and no test folder', () async {
+          Directory(
+            join(sampleProject.path, 'lib'),
+          ).deleteSync(recursive: true);
+          Directory(
+            join(sampleProject.path, 'test'),
+          ).deleteSync(recursive: true);
+
+          await runner.run(['tests', '--input', sampleProject.path]);
+
+          expect(messages.last, contains('✓ Running "dart test"'));
+        });
+
+        test(
+          'should succeed if there are tests but no lib/src folder',
+          () async {
+            Directory(
+              join(sampleProject.path, 'lib', 'src'),
+            ).deleteSync(recursive: true);
+            File(
+              join(sampleProject.path, 'lib', 'sample_project.dart'),
+            ).writeAsStringSync('');
+
+            final testDir = Directory(join(sampleProject.path, 'test'));
+            testDir.deleteSync(recursive: true);
+            testDir.createSync(recursive: true);
+            File(join(testDir.path, 'standalone_test.dart')).writeAsStringSync(
+              '''
+import 'package:test/test.dart';
+
+void main() {
+  test('should work', () {
+    expect(true, isTrue);
+  });
+}
+''',
+            );
+
+            await runner.run(['tests', '--input', sampleProject.path]);
+
+            expect(messages.last, contains('✓ Running "dart test"'));
+          },
+        );
+      });
+
+      // .......................................................................
       group('TypeScript dispatch', () {
         test(
           'delegates to the injected TypeScriptTestRunner for a TS project',

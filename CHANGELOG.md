@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Fix: Projects without implementation files fail
+
 ## 2.4.0 - 2026-08-04
 
 ### Changed

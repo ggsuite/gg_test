@@ -416,6 +416,11 @@ class Tests extends DirCommand<void> {
       }
     }
 
+    // Nothing to cover, e.g. a project without implementation files
+    if (totalLines == 0) {
+      return 100.0;
+    }
+
     // Calculate percentage
     var percentage = (coveredLines / totalLines) * 100;
     return percentage;
@@ -527,12 +532,18 @@ class Tests extends DirCommand<void> {
     }
 
     final lcovReport = buffer.toString();
+    _coverageDir.createSync(recursive: true);
     final lcovFile = File(join(_coverageDir.path, 'lcov.info'));
     lcovFile.writeAsStringSync(lcovReport);
   }
 
   // ...........................................................................
   Iterable<(File, File)> _implementationAndTestFiles() {
+    // Projects without a lib/src folder have no implementation files
+    if (!_srcDir.existsSync()) {
+      return const <(File, File)>[];
+    }
+
     // Get all implementation files
     final implementationFiles = _srcDir
         .listSync(recursive: true)
@@ -770,6 +781,19 @@ void main() {
   }
 
   // ...........................................................................
+  bool _hasTestFiles(Directory dir) {
+    final testDir = Directory(join(dir.path, 'test'));
+    if (!testDir.existsSync()) {
+      return false;
+    }
+
+    return testDir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .any((file) => file.path.endsWith('_test.dart'));
+  }
+
+  // ...........................................................................
   Future<_TaskResult> _task(Directory dir) async {
     // Get implementation files
     final files = _implementationAndTestFiles();
@@ -779,6 +803,14 @@ void main() {
     if (missingTestFiles.isNotEmpty) {
       _createMissingTestFiles(missingTestFiles, dir);
       return (1, _messages, _errors);
+    }
+
+    // Projects without any test files have nothing to run and nothing to
+    // cover. "dart test" would exit with 79 ("No tests were found") here.
+    if (!_hasTestFiles(dir)) {
+      _messages.add(cDetail('✓ No tests found. Nothing to do.'));
+      _messages.add('\n');
+      return (0, _messages, _errors);
     }
 
     // Run Tests
