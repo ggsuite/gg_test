@@ -14,3 +14,13 @@ dependency_overrides:
     path: ../gg_project_root
   gg_status_printer:
     path: ../gg_status_printer
+  gg_capture_print:
+    path: ../gg_capture_print
+  gg_console_colors:
+    path: ../gg_console_colors
+  gg_process:
+    path: ../gg_process
+  gg_is_github:
+    path: ../gg_is_github
+  gg_lang:
+    path: ../gg_lang
