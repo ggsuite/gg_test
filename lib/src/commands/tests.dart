@@ -758,7 +758,7 @@ void main() {
 
     // Execute flutter tests
     var process = await processWrapper.start(
-      Platform.isWindows ? 'flutter.bat' : 'flutter',
+      ggPlatform.isWindows ? 'flutter.bat' : 'flutter',
       ['test', '--coverage', '-r', 'expanded'],
       workingDirectory: dir.path,
     );
