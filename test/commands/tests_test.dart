@@ -343,12 +343,10 @@ void main() {
         // listing the missing lib/src folder threw a PathNotFoundException
         // and "dart test" exits with 79 when it does not find any test.
         test('should succeed if there are no lib and no test folder', () async {
-          Directory(
-            join(sampleProject.path, 'lib'),
-          ).deleteSync(recursive: true);
-          Directory(
-            join(sampleProject.path, 'test'),
-          ).deleteSync(recursive: true);
+          Directory(join(sampleProject.path, 'lib'))
+              .deleteSync(recursive: true);
+          Directory(join(sampleProject.path, 'test'))
+              .deleteSync(recursive: true);
 
           await runner.run(['tests', '--input', sampleProject.path]);
 
@@ -358,18 +356,16 @@ void main() {
         test(
           'should succeed if there are tests but no lib/src folder',
           () async {
-            Directory(
-              join(sampleProject.path, 'lib', 'src'),
-            ).deleteSync(recursive: true);
-            File(
-              join(sampleProject.path, 'lib', 'sample_project.dart'),
-            ).writeAsStringSync('');
+            Directory(join(sampleProject.path, 'lib', 'src'))
+                .deleteSync(recursive: true);
+            File(join(sampleProject.path, 'lib', 'sample_project.dart'))
+                .writeAsStringSync('');
 
             final testDir = Directory(join(sampleProject.path, 'test'));
             testDir.deleteSync(recursive: true);
             testDir.createSync(recursive: true);
-            File(join(testDir.path, 'standalone_test.dart')).writeAsStringSync(
-              '''
+            File(join(testDir.path, 'standalone_test.dart'))
+                .writeAsStringSync('''
 import 'package:test/test.dart';
 
 void main() {
@@ -377,8 +373,7 @@ void main() {
     expect(true, isTrue);
   });
 }
-''',
-            );
+''');
 
             await runner.run(['tests', '--input', sampleProject.path]);
 
@@ -419,9 +414,8 @@ void main() {
             final bridgeDir = Directory.systemTemp.createTempSync(
               'gg_test_bridge_',
             );
-            File(
-              join(bridgeDir.path, 'pubspec.yaml'),
-            ).writeAsStringSync('name: b\n');
+            File(join(bridgeDir.path, 'pubspec.yaml'))
+                .writeAsStringSync('name: b\n');
             File(join(bridgeDir.path, 'package.json')).writeAsStringSync('{}');
             File(join(bridgeDir.path, 'tsconfig.json')).writeAsStringSync('{}');
 
@@ -505,9 +499,8 @@ void main() {
       });
 
       void writePubspec() {
-        File(
-          join(pkgDir.path, 'pubspec.yaml'),
-        ).writeAsStringSync('name: my_pkg\n');
+        File(join(pkgDir.path, 'pubspec.yaml'))
+            .writeAsStringSync('name: my_pkg\n');
       }
 
       void writeLock(
@@ -530,9 +523,8 @@ sdks:
   dart: ">=3.8.0 <4.0.0"
 '''
                 .replaceAll('\n', lineEnding);
-        File(
-          join((into ?? pkgDir).path, 'pubspec.lock'),
-        ).writeAsStringSync(content);
+        File(join((into ?? pkgDir).path, 'pubspec.lock'))
+            .writeAsStringSync(content);
       }
 
       test('returns scoped args when test_core supports the option', () {
@@ -559,9 +551,8 @@ sdks:
         writePubspec();
         // A lock file without a test_core entry ends the lookup within
         // the sandbox.
-        File(
-          join(pkgDir.path, 'pubspec.lock'),
-        ).writeAsStringSync('packages:\n  args:\n    version: "2.4.2"\n');
+        File(join(pkgDir.path, 'pubspec.lock'))
+            .writeAsStringSync('packages:\n  args:\n    version: "2.4.2"\n');
         expect(Tests.coveragePackageArgs(pkgDir), isEmpty);
       });
 
@@ -584,9 +575,8 @@ sdks:
         });
 
         test('returns null when the lock file has no test_core entry', () {
-          File(
-            join(pkgDir.path, 'pubspec.lock'),
-          ).writeAsStringSync('packages:\n  args:\n    version: "2.4.2"\n');
+          File(join(pkgDir.path, 'pubspec.lock'))
+              .writeAsStringSync('packages:\n  args:\n    version: "2.4.2"\n');
           expect(Tests.resolvedTestCoreVersion(pkgDir), isNull);
         });
 
@@ -623,16 +613,13 @@ sdks:
 
         Future<void> runTestsCommand() async {
           // A minimal Dart package passing the missing-test-files check
-          Directory(
-            join(pkgDir.path, 'lib', 'src'),
-          ).createSync(recursive: true);
-          File(
-            join(pkgDir.path, 'lib', 'src', 'foo.dart'),
-          ).writeAsStringSync('void foo() {}\n');
+          Directory(join(pkgDir.path, 'lib', 'src'))
+              .createSync(recursive: true);
+          File(join(pkgDir.path, 'lib', 'src', 'foo.dart'))
+              .writeAsStringSync('void foo() {}\n');
           Directory(join(pkgDir.path, 'test')).createSync(recursive: true);
-          File(
-            join(pkgDir.path, 'test', 'foo_test.dart'),
-          ).writeAsStringSync('void main() {}\n');
+          File(join(pkgDir.path, 'test', 'foo_test.dart'))
+              .writeAsStringSync('void main() {}\n');
 
           wrapper = MockGgProcessWrapper();
           capturedArgs = null;
@@ -728,7 +715,7 @@ sdks:
 /// A hand-written fake — simpler than a mocktail mock and keeps the test
 /// assertions local and readable.
 class _FakeTypeScriptTestRunner implements TypeScriptTestRunner {
-  _FakeTypeScriptTestRunner({void Function()? onRun}) : _onRun = onRun;
+  _FakeTypeScriptTestRunner({this._onRun});
 
   final void Function()? _onRun;
   int invocations = 0;
