@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.2.0 - 2026-08-13
+
+### Changed
+
+- Rework copyright headers
+
+### Fixed
+
+- Coverage of flutter projects was not detected when the input directory was
+passed as relative path
+- Cleanup copy right headers. Update to dart 3.13. Auto fixes.
+- Cleanup copy right headers. Update to dart 3.13. Auto fixes. Setup quick-check pipeline.
+
 ## 3.1.1 - 2026-08-11
 
 ### Changed

@@ -1,5 +1,5 @@
 // @license
-// Copyright (c) 2019 - 2024 Dr. Gabriel Gatzsche. All Rights Reserved.
+// Copyright (c) ggsuite
 //
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
@@ -160,9 +160,8 @@ class Tests extends DirCommand<void> {
           .replaceAll('test/'.os, 'lib/src/'.os)
           .replaceAll('_test.dart', '.dart');
 
-      final implementationFileExists = File(
-        join(dir.path, implementationFile),
-      ).existsSync();
+      final implementationFileExists = File(join(dir.path, implementationFile))
+          .existsSync();
 
       // Workaround: In some cases dart tests adds old coverage files
       if (!implementationFileExists) {
@@ -384,10 +383,13 @@ class Tests extends DirCommand<void> {
       if (line.startsWith('SF:')) {
         final script = './${line.replaceFirst('SF:', '')}'.os;
         isExcluded = _isExcludedFromCoverage(script);
-        final scriptAbsolute = canonicalize(join(dir.path, script));
 
         summaryForScript = {};
-        final key = dir.path.startsWith('.') ? script : scriptAbsolute;
+
+        // Use the same key format as _implementationAndTestFiles(), i.e.
+        // join(dir.path, 'lib/src/...'). Otherwise the files would be
+        // reported as untested when dir is a relative path.
+        final key = join(dir.path, line.replaceFirst('SF:', '').os);
         result[key] = summaryForScript;
       }
       // Read coverage
@@ -601,9 +603,8 @@ void main() {
       Directory(testFileDir).createSync(recursive: true);
 
       // Write boilerplate
-      final className = basenameWithoutExtension(
-        implementationFile.path,
-      ).pascalCase;
+      final className = basenameWithoutExtension(implementationFile.path)
+          .pascalCase;
 
       final classNameCamelCase = className.camelCase;
 

@@ -1,5 +1,5 @@
 // @license
-// Copyright (c) 2019 - 2024 Dr. Gabriel Gatzsche. All Rights Reserved.
+// Copyright (c) ggsuite
 //
 // Use of this source code is governed by terms that can be
 // found in the LICENSE file in the root of this package.
@@ -97,9 +97,8 @@ void main() {
 
     test('runs the package.json "test" script when one is defined', () async {
       File(join(tmp.path, 'pnpm-lock.yaml')).writeAsStringSync('');
-      File(
-        join(tmp.path, 'package.json'),
-      ).writeAsStringSync('{"scripts":{"test":"vitest run && dart test"}}');
+      File(join(tmp.path, 'package.json'))
+          .writeAsStringSync('{"scripts":{"test":"vitest run && dart test"}}');
       stubRun(ProcessResult(1, 0, '', ''));
 
       final runner = TypeScriptTestRunner(processWrapper: processWrapper);
