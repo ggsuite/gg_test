@@ -597,6 +597,13 @@ void main() {
     _messages.add(yellow('Tests were created. Please revise:'));
     final packageName = basename(canonicalize(dir.path));
 
+    // A Flutter package cannot import package:test — flutter_test pins its
+    // own test_api and re-exports the matcher API, so the generated file
+    // would not even compile. Generate the import the project can use.
+    final testImport = isFlutterDir(dir)
+        ? 'package:flutter_test/flutter_test.dart'
+        : 'package:test/test.dart';
+
     for (final (implementationFile, testFile) in missingFiles) {
       // Create test file with intermediate directories
       final testFileDir = dirname(testFile.path);
@@ -617,7 +624,7 @@ void main() {
           .replaceAll(
             'import \'package:test/test.dart\';',
             'import \'package:$packageName/$packageName.dart\';\n'
-                'import \'package:test/test.dart\';\n',
+                'import \'$testImport\';\n',
           )
           .replaceAll('expect(true', 'expect($classNameCamelCase');
 

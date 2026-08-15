@@ -670,6 +670,62 @@ sdks:
     });
 
     // .........................................................................
+    // The generated boilerplate must compile in the project it lands in.
+    // flutter_test pins its own test_api and re-exports the matcher API, so a
+    // Flutter package importing package:test does not build.
+    group('generates a test file importing', () {
+      late Directory pkgDir;
+      late File generated;
+
+      setUp(() {
+        pkgDir = Directory.systemTemp.createTempSync('gg_test_gen_');
+        File(join(pkgDir.path, 'pubspec.yaml'))
+            .writeAsStringSync('name: my_pkg\n');
+        Directory(join(pkgDir.path, 'lib', 'src')).createSync(recursive: true);
+        File(join(pkgDir.path, 'lib', 'src', 'foo.dart'))
+            .writeAsStringSync('void foo() {}\n');
+        generated = File(join(pkgDir.path, 'test', 'foo_test.dart'));
+      });
+
+      tearDown(() => pkgDir.deleteSync(recursive: true));
+
+      Future<void> run() async {
+        final localRunner = CommandRunner<void>('test', 'test')
+          ..addCommand(Tests(ggLog: messages.add));
+
+        // The missing test file is created, then the run fails so the author
+        // revises it — no test process runs.
+        await expectLater(
+          localRunner.run(['tests', '--input', pkgDir.path]),
+          throwsA(isA<Exception>()),
+        );
+        expect(generated.existsSync(), isTrue);
+      }
+
+      test('package:test for a dart project', () async {
+        await run();
+
+        expect(
+          generated.readAsStringSync(),
+          contains("import 'package:test/test.dart';"),
+        );
+      });
+
+      test('package:flutter_test for a flutter project', () async {
+        testIsFlutter = true;
+
+        await run();
+
+        final content = generated.readAsStringSync();
+        expect(
+          content,
+          contains("import 'package:flutter_test/flutter_test.dart';"),
+        );
+        expect(content, isNot(contains("import 'package:test/test.dart';")));
+      });
+    });
+
+    // .........................................................................
     // Regression: a test run that passes but leaves no coverage artifact was
     // reported as »Please add valid tests to the following files«, listing
     // every implementation file although each one had its test file right
