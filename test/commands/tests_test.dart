@@ -191,6 +191,8 @@ void main() {
                     'Please add valid tests to the following files:',
                     '- test/simple_base_test.dart'.os,
                     '  lib/src/simple_base.dart'.os,
+                    'The test files exist but produced no coverage for '
+                        'their implementation file.',
                   ].join('\n'),
                 ]);
               },
@@ -664,6 +666,165 @@ sdks:
           expect(capturedArgs, isNot(contains('--coverage-package')));
           expect(capturedArgs, contains('--coverage'));
         });
+      });
+    });
+
+    // .........................................................................
+    // The generated boilerplate must compile in the project it lands in.
+    // flutter_test pins its own test_api and re-exports the matcher API, so a
+    // Flutter package importing package:test does not build.
+    group('generates a test file importing', () {
+      late Directory pkgDir;
+      late File generated;
+
+      setUp(() {
+        pkgDir = Directory.systemTemp.createTempSync('gg_test_gen_');
+        File(join(pkgDir.path, 'pubspec.yaml'))
+            .writeAsStringSync('name: my_pkg\n');
+        Directory(join(pkgDir.path, 'lib', 'src')).createSync(recursive: true);
+        File(join(pkgDir.path, 'lib', 'src', 'foo.dart'))
+            .writeAsStringSync('void foo() {}\n');
+        generated = File(join(pkgDir.path, 'test', 'foo_test.dart'));
+      });
+
+      tearDown(() => pkgDir.deleteSync(recursive: true));
+
+      Future<void> run() async {
+        final localRunner = CommandRunner<void>('test', 'test')
+          ..addCommand(Tests(ggLog: messages.add));
+
+        // The missing test file is created, then the run fails so the author
+        // revises it — no test process runs.
+        await expectLater(
+          localRunner.run(['tests', '--input', pkgDir.path]),
+          throwsA(isA<Exception>()),
+        );
+        expect(generated.existsSync(), isTrue);
+      }
+
+      test('package:test for a dart project', () async {
+        await run();
+
+        expect(
+          generated.readAsStringSync(),
+          contains("import 'package:test/test.dart';"),
+        );
+      });
+
+      test('package:flutter_test for a flutter project', () async {
+        testIsFlutter = true;
+
+        await run();
+
+        final content = generated.readAsStringSync();
+        expect(
+          content,
+          contains("import 'package:flutter_test/flutter_test.dart';"),
+        );
+        expect(content, isNot(contains("import 'package:test/test.dart';")));
+      });
+    });
+
+    // .........................................................................
+    // Regression: a test run that passes but leaves no coverage artifact was
+    // reported as »Please add valid tests to the following files«, listing
+    // every implementation file although each one had its test file right
+    // next to it. On the Flutter path a leftover coverage/lcov.info from an
+    // earlier run made this happen during »gg do publish«: »flutter test
+    // --coverage« writes an SF: record only for the libraries it loads and
+    // does not truncate the file, so a stale or partial report was read.
+    group('when a passing test run produces no coverage', () {
+      late Directory pkgDir;
+      late MockGgProcessWrapper wrapper;
+
+      setUp(() {
+        pkgDir = Directory.systemTemp.createTempSync('gg_test_nocov_');
+
+        // A minimal package passing the missing-test-files check
+        File(join(pkgDir.path, 'pubspec.yaml'))
+            .writeAsStringSync('name: my_pkg\n');
+        Directory(join(pkgDir.path, 'lib', 'src')).createSync(recursive: true);
+        File(join(pkgDir.path, 'lib', 'src', 'foo.dart'))
+            .writeAsStringSync('void foo() {}\n');
+        Directory(join(pkgDir.path, 'test')).createSync(recursive: true);
+        File(join(pkgDir.path, 'test', 'foo_test.dart'))
+            .writeAsStringSync('void main() {}\n');
+
+        // A test process that succeeds without writing any coverage
+        wrapper = MockGgProcessWrapper();
+        when(
+          () => wrapper.start(
+            any(),
+            any(),
+            workingDirectory: any(named: 'workingDirectory'),
+          ),
+        ).thenAnswer((_) async => GgFakeProcess()..exit(0));
+      });
+
+      tearDown(() => pkgDir.deleteSync(recursive: true));
+
+      Future<void> run() async {
+        final localRunner = CommandRunner<void>('test', 'test')
+          ..addCommand(Tests(ggLog: messages.add, processWrapper: wrapper));
+
+        await expectLater(
+          localRunner.run(['tests', '--input', pkgDir.path]),
+          throwsA(isA<Exception>()),
+        );
+      }
+
+      test('names the missing dart artifact instead of blaming the '
+          'implementation files', () async {
+        await run();
+
+        final output = messages.map(rmControls).join('\n');
+        expect(output, contains('No coverage data was produced.'));
+        expect(output, contains(join('coverage', '*.dart.vm.json')));
+        expect(output, isNot(contains('Please add valid tests')));
+      });
+
+      test('names the missing lcov artifact for a flutter project', () async {
+        testIsFlutter = true;
+
+        await run();
+
+        final output = messages.map(rmControls).join('\n');
+        expect(output, contains('No coverage data was produced.'));
+        expect(output, contains(join('coverage', 'lcov.info')));
+        expect(output, isNot(contains('Please add valid tests')));
+      });
+
+      test('treats an empty lcov.info as missing', () async {
+        testIsFlutter = true;
+        Directory(join(pkgDir.path, 'coverage')).createSync(recursive: true);
+        File(join(pkgDir.path, 'coverage', 'lcov.info')).writeAsStringSync('');
+
+        await run();
+
+        expect(
+          messages.map(rmControls).join('\n'),
+          contains('No coverage data was produced.'),
+        );
+      });
+
+      test('deletes a stale coverage report before the flutter run', () async {
+        testIsFlutter = true;
+
+        // A leftover report of an earlier run, covering a file that is not
+        // even part of this package. Left in place it would be parsed as if
+        // it described the current tree.
+        final coverageDir = Directory(join(pkgDir.path, 'coverage'))
+          ..createSync(recursive: true);
+        final lcov = File(join(coverageDir.path, 'lcov.info'))
+          ..writeAsStringSync('SF:lib/src/gone.dart\nDA:1,1\nend_of_record\n');
+
+        await run();
+
+        expect(lcov.existsSync(), isFalse);
+        expect(
+          messages.map(rmControls).join('\n'),
+          contains('No coverage data was produced.'),
+        );
       });
     });
 

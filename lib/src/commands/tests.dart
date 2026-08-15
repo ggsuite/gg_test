@@ -597,6 +597,13 @@ void main() {
     _messages.add(yellow('Tests were created. Please revise:'));
     final packageName = basename(canonicalize(dir.path));
 
+    // A Flutter package cannot import package:test — flutter_test pins its
+    // own test_api and re-exports the matcher API, so the generated file
+    // would not even compile. Generate the import the project can use.
+    final testImport = isFlutterDir(dir)
+        ? 'package:flutter_test/flutter_test.dart'
+        : 'package:test/test.dart';
+
     for (final (implementationFile, testFile) in missingFiles) {
       // Create test file with intermediate directories
       final testFileDir = dirname(testFile.path);
@@ -617,7 +624,7 @@ void main() {
           .replaceAll(
             'import \'package:test/test.dart\';',
             'import \'package:$packageName/$packageName.dart\';\n'
-                'import \'package:test/test.dart\';\n',
+                'import \'$testImport\';\n',
           )
           .replaceAll('expect(true', 'expect($classNameCamelCase');
 
@@ -674,6 +681,43 @@ void main() {
       _messages.add('- $testFileRelative');
       _messages.add('  $srcFileRelative');
     }
+
+    // The test files above exist — _collectMissingTestFiles ran first and
+    // created the ones that did not. So »add tests« means »the test file runs
+    // but never reaches its implementation file«, which reads nothing like
+    // »the file is missing«. Naming the difference saves the reader from
+    // looking for a file that is already there.
+    _messages.add(
+      cDetail(
+        'The test files exist but produced no coverage for their '
+        'implementation file.',
+      ),
+    );
+  }
+
+  // ...........................................................................
+  /// Describes the coverage artifact a finished test run must have left in
+  /// [dir], or `null` when it is there and carries data.
+  ///
+  /// Flutter writes one `coverage/lcov.info`; the Dart runner writes one
+  /// `*.dart.vm.json` per test file below `coverage`.
+  String? _missingCoverageArtifact(Directory dir) {
+    if (isFlutterDir(dir)) {
+      final lcov = File(join(dir.path, 'coverage', 'lcov.info'));
+      final isMissing = !lcov.existsSync() || lcov.lengthSync() == 0;
+      return isMissing ? join('coverage', 'lcov.info') : null;
+    }
+
+    if (!_coverageDir.existsSync()) {
+      return join('coverage', '*.dart.vm.json');
+    }
+
+    final hasVmJson = _coverageDir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .any((file) => file.path.endsWith('dart.vm.json'));
+
+    return hasVmJson ? null : join('coverage', '*.dart.vm.json');
   }
 
   // ...........................................................................
@@ -757,6 +801,15 @@ void main() {
   Future<int> _testFlutter(Directory dir) async {
     int exitCode = 0;
 
+    // Remove the coverage directory, exactly as _testDart does. »flutter test
+    // --coverage« writes an »SF:« record only for the libraries a run actually
+    // loads, and it does not truncate what an earlier run left behind. Reading
+    // a leftover lcov.info reports the coverage of a tree that is no longer
+    // there — a partial one makes every implementation file look untested.
+    if (_coverageDir.existsSync()) {
+      _coverageDir.deleteSync(recursive: true);
+    }
+
     // Execute flutter tests
     var process = await processWrapper.start(
       ggPlatform.isWindows ? 'flutter.bat' : 'flutter',
@@ -819,6 +872,28 @@ void main() {
 
     if (error != 0) {
       return (error, _messages, _errors);
+    }
+
+    // The tests passed, so the run must have left a coverage artifact behind.
+    // A missing or empty one is an infrastructure failure — the artifact was
+    // never written, or was written for a tree that is no longer there.
+    //
+    // The distinction matters because the check below cannot make it: an
+    // empty report is also what a package with a single, genuinely untested
+    // implementation file produces. Deciding on the artifact rather than on
+    // the report keeps that case reported as the missing test it is, and
+    // stops a broken run from blaming every implementation file for missing
+    // tests that sit right next to them.
+    final missingArtifact = _missingCoverageArtifact(dir);
+    if (missingArtifact != null && files.isNotEmpty) {
+      _messages.add(yellow('No coverage data was produced.'));
+      _messages.add(
+        cDetail(
+          'Expected $missingArtifact. The tests passed, so this is not a '
+          'missing test — the coverage report was not written.',
+        ),
+      );
+      return (1, _messages, _errors);
     }
 
     // Generate coverage reports
