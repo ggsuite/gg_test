@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Flutter projecs fail on publish
+
 ## 3.2.0 - 2026-08-13
 
 ### Changed
