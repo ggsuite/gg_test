@@ -109,7 +109,7 @@
       "name": "gg-args",
       "package": "gg_args",
       "ecosystem": "pub",
-      "resolvedVersion": "3.1.1",
+      "resolvedVersion": "3.2.0",
       "via": null,
       "hash": "0x32b3537fa5495175"
     },
@@ -117,7 +117,7 @@
       "name": "gg-is-flutter",
       "package": "gg_is_flutter",
       "ecosystem": "pub",
-      "resolvedVersion": "2.1.1",
+      "resolvedVersion": "2.2.0",
       "via": null,
       "hash": "0x32b3537fa5495175"
     },
@@ -125,7 +125,7 @@
       "name": "gg-status-printer",
       "package": "gg_status_printer",
       "ecosystem": "pub",
-      "resolvedVersion": "1.5.1",
+      "resolvedVersion": "1.6.0",
       "via": null,
       "hash": "0x32b3537fa5495175"
     },
