@@ -21,7 +21,7 @@ void main() {
   setUp(() {
     messages.clear();
     tmp = Directory.systemTemp.createTempSync('gg_test_ts_runner_');
-    File(join(tmp.path, 'package.json')).writeAsStringSync('{}');
+    File(join(tmp.path, 'package.json')).writeAsStringSync('{"name":"foo"}');
     File(join(tmp.path, 'tsconfig.json')).writeAsStringSync('{}');
     processWrapper = MockGgProcessWrapper();
   });
