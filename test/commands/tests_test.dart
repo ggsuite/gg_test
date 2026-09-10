@@ -390,7 +390,8 @@ void main() {
           'delegates to the injected TypeScriptTestRunner for a TS project',
           () async {
             final tsDir = Directory.systemTemp.createTempSync('gg_test_ts_');
-            File(join(tsDir.path, 'package.json')).writeAsStringSync('{}');
+            File(join(tsDir.path, 'package.json'))
+                .writeAsStringSync('{"name":"foo"}');
             File(join(tsDir.path, 'tsconfig.json')).writeAsStringSync('{}');
 
             final fakeRunner = _FakeTypeScriptTestRunner();
@@ -418,7 +419,8 @@ void main() {
             );
             File(join(bridgeDir.path, 'pubspec.yaml'))
                 .writeAsStringSync('name: b\n');
-            File(join(bridgeDir.path, 'package.json')).writeAsStringSync('{}');
+            File(join(bridgeDir.path, 'package.json'))
+                .writeAsStringSync('{"name":"foo"}');
             File(join(bridgeDir.path, 'tsconfig.json')).writeAsStringSync('{}');
 
             final fakeRunner = _FakeTypeScriptTestRunner();
@@ -460,7 +462,8 @@ void main() {
 
         test('propagates failures from the TypeScriptTestRunner', () async {
           final tsDir = Directory.systemTemp.createTempSync('gg_test_ts_');
-          File(join(tsDir.path, 'package.json')).writeAsStringSync('{}');
+          File(join(tsDir.path, 'package.json'))
+              .writeAsStringSync('{"name":"foo"}');
           File(join(tsDir.path, 'tsconfig.json')).writeAsStringSync('{}');
 
           final fakeRunner = _FakeTypeScriptTestRunner(

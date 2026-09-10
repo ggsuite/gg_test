@@ -23,13 +23,21 @@ void main() {
 
   group('isTypeScriptProject', () {
     test('true when package.json + tsconfig.json are present', () {
-      File(join(tmp.path, 'package.json')).writeAsStringSync('{}');
+      File(join(tmp.path, 'package.json')).writeAsStringSync('{"name":"foo"}');
       File(join(tmp.path, 'tsconfig.json')).writeAsStringSync('{}');
       expect(isTypeScriptProject(tmp), isTrue);
     });
 
     test('false when tsconfig.json is missing', () {
+      File(join(tmp.path, 'package.json')).writeAsStringSync('{"name":"foo"}');
+      expect(isTypeScriptProject(tmp), isFalse);
+    });
+
+    test('false when package.json has no name', () {
+      // A package.json without a name is no npm manifest, so a tsconfig.json
+      // next to it makes no TypeScript project.
       File(join(tmp.path, 'package.json')).writeAsStringSync('{}');
+      File(join(tmp.path, 'tsconfig.json')).writeAsStringSync('{}');
       expect(isTypeScriptProject(tmp), isFalse);
     });
 
@@ -40,7 +48,7 @@ void main() {
 
     test('false when pubspec.yaml is present (Dart/Flutter wins)', () {
       File(join(tmp.path, 'pubspec.yaml')).writeAsStringSync('name: foo\n');
-      File(join(tmp.path, 'package.json')).writeAsStringSync('{}');
+      File(join(tmp.path, 'package.json')).writeAsStringSync('{"name":"foo"}');
       File(join(tmp.path, 'tsconfig.json')).writeAsStringSync('{}');
       expect(isTypeScriptProject(tmp), isFalse);
     });
