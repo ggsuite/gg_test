@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- &quot;Quiet
+
 ## 3.3.1 - 2026-09-11
 
 ## 3.3.0 - 2026-09-02
