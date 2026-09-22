@@ -45,3 +45,19 @@ Because this package runs itself through its own coverage gate, every file under
 ## Lints
 
 `analysis_options.yaml` enables strict-casts / strict-inference / strict-raw-types and requires `public_member_api_docs`, `lines_longer_than_80_chars`, `prefer_single_quotes`, `require_trailing_commas`, and `always_declare_return_types` as an error. New public API without a doc comment will break `dart analyze`.
+
+<!-- helix:claude_md:start -->
+
+# gg workflow
+
+This repo is developed ticket by ticket with the `gg` CLI. Follow the
+development guide, it tells you when to ask the user and which command
+comes next:
+
+@doc/guides/for-ai/ai-dev-guide.md
+
+The steps are also available as skills: `/gg-ticket`, `/gg-commit`,
+`/gg-push`, `/gg-publish`, `/gg-cleanup`. `/gg` lists them and says which
+one comes next.
+
+<!-- helix:claude_md:end -->
