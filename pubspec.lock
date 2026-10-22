@@ -34,13 +34,13 @@ packages:
     source: hosted
     version: "2.13.1"
   boolean_selector:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: boolean_selector
-      sha256: "8aab1771e1243a5063b8b0ff68042d67334e3feab9e95b9490f9a6ebf73b42ea"
+      sha256: "5bbf32bc9e518d41ec49718e2931cd4527292c9b0c6d2dffcf7fe6b9a8a8cf72"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "2.1.0"
   cli_config:
     dependency: transitive
     description:

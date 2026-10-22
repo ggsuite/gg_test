@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Skip coverage of tests that do not run here
+
 ## 3.3.4 - 2026-10-16
 
 ## 3.3.3 - 2026-10-06

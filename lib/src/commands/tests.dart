@@ -661,13 +661,21 @@ void main() {
           // - if ignore file comment is found
           fileContent.contains('coverage:ignore-file') ||
           // - if the file contains no functions
-          !hasFunctions(fileContent);
+          !hasFunctions(fileContent) ||
+          // - if its test file does not run on this platform
+          !_runsHere(e.$2);
 
       return !ignoreMissingCoverage;
     }).toList();
 
     return result;
   }
+
+  // ...........................................................................
+  /// Whether [testFile] runs on this platform: its `@TestOn` may exclude
+  /// it, e.g. a test of a macOS API on Windows.
+  bool _runsHere(File testFile) =>
+      !testFile.existsSync() || runsOnPlatform(testFile.readAsStringSync());
 
   // ...........................................................................
   void _printUntestedFiles(Iterable<(File, File)> files, Directory dir) {
