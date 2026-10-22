@@ -28,7 +28,8 @@ complete confidence in the robustness and fault tolerance of their applications.
 
 A test file whose file-level `@TestOn` excludes the current platform, e.g.
 `@TestOn('mac-os')` on Windows, does not run there, so its implementation
-file is not asked for coverage on that platform.
+file is not asked for coverage on that platform. `runsOnPlatform(testCode)`
+tells whether a test file runs on the current platform.
 
 ### Links Optimized for VSCode
 
