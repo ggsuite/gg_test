@@ -5,6 +5,7 @@
 ### Changed
 
 - Skip coverage of tests that do not run here
+- Document the Windows support of ticket gg-1
 
 ## 3.3.4 - 2026-10-16
 

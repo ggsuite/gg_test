@@ -26,6 +26,10 @@ coverage guarantee. This feature ensures that every line of your code is tested,
 leaving no stone unturned. With comprehensive code coverage, developers can have
 complete confidence in the robustness and fault tolerance of their applications.
 
+A test file whose file-level `@TestOn` excludes the current platform, e.g.
+`@TestOn('mac-os')` on Windows, does not run there, so its implementation
+file is not asked for coverage on that platform.
+
 ### Links Optimized for VSCode
 
 `gg_test` takes developer convenience to the next level with links optimized for
