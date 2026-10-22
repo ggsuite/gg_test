@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   args: ^2.7.0
+  boolean_selector: ^2.1.0
   colorize: ^3.0.0
   gg_args: ^3.2.0
   gg_console_colors: ^2.5.0
