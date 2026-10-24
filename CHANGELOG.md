@@ -9,6 +9,12 @@
 - Apply the review of ticket gg-1
 - Upgrade the dependencies
 
+### Removed
+
+- Rewrite the blog post of ticket gg-1 in doc/blog
+
+Remove the older post from the misplaced blog folder
+
 ## 3.3.4 - 2026-10-16
 
 ## 3.3.3 - 2026-10-06
