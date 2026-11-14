@@ -58,6 +58,16 @@ After adding gg_test to your project, you run your tests:
 dart run gg_test tests
 ```
 
+### Several test runs at the same time
+
+A program that tests several packages at once creates `Tests` with
+`concurrency:` — how many test files a run loads and runs at the same
+time — and `timeoutFactor:` — how many times its usual time a test of a
+Dart package may take. Both are asked at the start of every run. Dart
+tests are started with `dart run --no-dds test:test`: the Dart Development
+Service cut the connections of test runs that load their files side by
+side.
+
 ## Conclusion
 
 `gg_test` is the go-to testing package for Flutter and Dart developers seeking

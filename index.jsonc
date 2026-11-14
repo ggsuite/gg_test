@@ -1,0 +1,40 @@
+// @license
+// Copyright (c) ggsuite
+//
+// Use of this source code is governed by terms that can be
+// found in the LICENSE file in the root of this package.
+
+{
+  // The package name, as declared in pubspec.yaml / package.json.
+  "name": "gg_test",
+
+  // 1-2 sentence summary about this repo.
+  "summary": "Runs the tests of a Dart, Flutter or TypeScript package with coverage, demands 100 % coverage and a test file for every source file, and prints short error locations an editor can open.",
+
+  // 1-3 bullet points: the problem space.
+  "domain": [
+    "Tests command: dart test / flutter test with coverage, lcov report, missing test files, untested lines; several runs side by side (concurrency, timeout factor, no DDS)",
+    "ErrorInfoReader: failed tests as file:line:col",
+    "TypeScript packages: TypeScriptTestRunner (test script or vitest run --coverage)",
+  ],
+
+  // The repos this one depends on and the repos depending on it.
+  // Keep the reason or the API behind each entry, not just the name.
+  "interfaces": {
+    // "<repo-a>": "why / API"
+    "uses": {
+      "gg_process": "GgProcessWrapper starts the test runner",
+      "gg_is_flutter": "flutter test or dart test",
+      "gg_lang": "project type, package manager of a TypeScript package",
+      "gg_args": "DirCommand base of Tests",
+      "gg_status_printer": "progress output",
+      "gg_console_colors": "colored output",
+      "gg_log": "GgLog",
+    },
+
+    // "<repo-b>": "why / API"
+    "usedBy": {
+      "gg_one_core": "Tests as one of the checks, with concurrency and timeout factor",
+    },
+  },
+}

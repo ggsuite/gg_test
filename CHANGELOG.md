@@ -2,14 +2,18 @@
 
 ## Unreleased
 
+### Added
+
+- Add the blog post, a README section and index.jsonc
+
+Add the blog post of the change
+README: several test runs at the same time
+Add index.jsonc
+Tighten the dependencies
+
 ### Changed
 
 - Run the tests without DDS, with a given concurrency
-
-Every run uses an instance of its own, so several directories can be tested at the same time; the details of a failed run go to the log of that run
-Dart tests start with »dart run --no-dds test:test«: with DDS a test file could fail to load on a busy machine (»Connection closed before full header was received«) and the run could hang
-Tests(concurrency:) sets how many test files a run starts at the same time
-Tests(timeoutFactor:) lets a test take several times its usual time when test runs share the machine
 
 ## 3.3.5 - 2026-11-06
 

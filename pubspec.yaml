@@ -15,14 +15,14 @@ dependencies:
   gg_is_github: ^1.2.4
   gg_lang: ^0.8.4
   gg_log: ^1.2.0
-  gg_process: ^1.4.0
+  gg_process: ^1.4.1
   gg_status_printer: ^1.6.4
   mocktail: ^1.0.5
   path: ^1.9.1
   recase: ^4.1.0
 
 dev_dependencies:
-  dna_ggsuite: ^1.0.1
+  dna_ggsuite: ^1.0.2
   gg_capture_print: ^1.2.1
   helix: ^1.14.0
   lints: ^6.1.0
