@@ -1,15 +1,10 @@
 # Changelog
 
-## Unreleased
+## 3.4.0 - 2026-11-14
 
 ### Added
 
 - Add the blog post, a README section and index.jsonc
-
-Add the blog post of the change
-README: several test runs at the same time
-Add index.jsonc
-Tighten the dependencies
 
 ### Changed
 
