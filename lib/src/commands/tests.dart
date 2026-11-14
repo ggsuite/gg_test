@@ -32,19 +32,62 @@ class Tests extends DirCommand<void> {
     required super.ggLog,
     this.processWrapper = const GgProcessWrapper(),
     TypeScriptTestRunner? typeScriptTestRunner,
+    this.concurrency,
+    this.timeoutFactor,
   }) : _typeScriptTestRunner =
            typeScriptTestRunner ?? const TypeScriptTestRunner(),
        super(name: 'tests', description: 'Runs the project test suite.');
 
   final TypeScriptTestRunner _typeScriptTestRunner;
 
+  /// How many test files a run loads and runs at the same time, asked when
+  /// a run starts. Without it, or when it answers null, the test runner
+  /// decides: it takes half of the processors.
+  ///
+  /// For a caller that tests several packages at the same time. Every run
+  /// assumes the machine for itself; several of them together start a
+  /// multiple of the test files it can serve, and tests that start
+  /// processes then need so long that they run into their timeout. With a
+  /// share per run, all runs together start what one run alone would.
+  final int? Function()? concurrency;
+
+  /// How many times its usual time a test of a Dart package may take, asked
+  /// when a run starts. Without it, or when it answers null, the timeouts
+  /// are those of the test runner: 30 seconds per test unless the package
+  /// says otherwise.
+  ///
+  /// For a caller that tests several packages at the same time. A timeout
+  /// is there to end a test that hangs, and it is set for a machine the
+  /// test run has for itself. Next to other test runs every test takes
+  /// longer — a test that needs ten seconds alone ran into its timeout —
+  /// so the caller says how much longer is still no hang.
+  final int? Function()? timeoutFactor;
+
   /// Pathes that will be excluded vom coverage
   static final foldersExcludedFromCoverage = ['l10n'];
 
   // ...........................................................................
   /// Executes the command
+  ///
+  /// Every call runs on an instance of its own, because a run keeps its
+  /// state in the instance — its messages and the folders it works on. So
+  /// several directories can be tested at the same time, and no run reports
+  /// the messages of the one before.
   @override
-  Future<void> get({required Directory directory, required GgLog ggLog}) async {
+  Future<void> get({required Directory directory, required GgLog ggLog}) =>
+      Tests(
+        ggLog: this.ggLog,
+        processWrapper: processWrapper,
+        typeScriptTestRunner: _typeScriptTestRunner,
+        concurrency: concurrency,
+        timeoutFactor: timeoutFactor,
+      )._run(directory: directory, ggLog: ggLog);
+
+  // ...........................................................................
+  Future<void> _run({
+    required Directory directory,
+    required GgLog ggLog,
+  }) async {
     await check(directory: directory);
 
     // Cross-language bridge repos (pubspec.yaml + package.json + tsconfig)
@@ -90,7 +133,7 @@ class Tests extends DirCommand<void> {
         : GgStatusPrinterStatus.error;
 
     if (!success) {
-      _logErrors(messages, errors);
+      _logErrors(messages, errors, ggLog);
     }
 
     if (code != 0) {
@@ -110,7 +153,9 @@ class Tests extends DirCommand<void> {
   late Directory _srcDir;
 
   // ...........................................................................
-  void _logErrors(List<String> messages, List<String> errors) {
+  /// Logs what went wrong to [ggLog], the log of the run: next to the
+  /// status line of that run, also when several runs log at the same time.
+  void _logErrors(List<String> messages, List<String> errors, GgLog ggLog) {
     final errorMsg = errors.where((e) => e.isNotEmpty).join('\n');
     final stdoutMsg = messages.where((e) => e.isNotEmpty).join('\n');
 
@@ -233,6 +278,40 @@ class Tests extends DirCommand<void> {
       if (match != null) return match.group(1);
     }
     return null;
+  }
+
+  // ...........................................................................
+  /// How the test runner of a Dart package is started: `dart run test:test`
+  /// with `--no-dds`, the runner `dart test` starts as well.
+  ///
+  /// Only `dart run` takes `--no-dds`, and the run has to do without the
+  /// Dart Development Service: to gather coverage the runner connects to the
+  /// VM service of its own process for every test file it loads. `dart test`
+  /// starts DDS next to it, and DDS takes the VM service over as soon as it
+  /// is up, which cuts the connections that are being opened at that
+  /// moment. On an idle machine DDS is up before the first test file loads.
+  /// On a busy one — several test runs at the same time — it comes up while
+  /// test files are loading: the run then fails with `Failed to load "…":
+  /// Connection closed before full header was received`, and now and then
+  /// never ends. Nothing a test run does here needs DDS.
+  static const dartTestRunnerArgs = ['run', '--no-dds', 'test:test'];
+
+  // ...........................................................................
+  /// The test runner argument for [concurrency]; nothing when the runner is
+  /// to decide. At least one test file runs, whatever the answer.
+  List<String> get _concurrencyArgs {
+    final files = concurrency?.call();
+    return files == null
+        ? const []
+        : ['--concurrency=${files < 1 ? 1 : files}'];
+  }
+
+  // ...........................................................................
+  /// The test runner argument for [timeoutFactor]; nothing when the timeouts
+  /// stay as they are, also for a factor of one or less.
+  List<String> get _timeoutArgs {
+    final factor = timeoutFactor?.call();
+    return factor == null || factor <= 1 ? const [] : ['--timeout=${factor}x'];
   }
 
   // ...........................................................................
@@ -738,7 +817,9 @@ void main() {
     var isError = false;
 
     var process = await processWrapper.start('dart', [
-      'test',
+      ...dartTestRunnerArgs,
+      ..._concurrencyArgs,
+      ..._timeoutArgs,
       '-r',
       'expanded',
       '--coverage',
@@ -813,7 +894,7 @@ void main() {
     // Execute flutter tests
     var process = await processWrapper.start(
       ggPlatform.isWindows ? 'flutter.bat' : 'flutter',
-      ['test', '--coverage', '-r', 'expanded'],
+      ['test', ..._concurrencyArgs, '--coverage', '-r', 'expanded'],
       workingDirectory: dir.path,
     );
 

@@ -616,7 +616,10 @@ sdks:
         late MockGgProcessWrapper wrapper;
         List<String>? capturedArgs;
 
-        Future<void> runTestsCommand() async {
+        Future<void> runTestsCommand({
+          int? Function()? concurrency,
+          int? Function()? timeoutFactor,
+        }) async {
           // A minimal Dart package passing the missing-test-files check
           Directory(join(pkgDir.path, 'lib', 'src'))
               .createSync(recursive: true);
@@ -644,13 +647,106 @@ sdks:
           });
 
           final localRunner = CommandRunner<void>('test', 'test')
-            ..addCommand(Tests(ggLog: messages.add, processWrapper: wrapper));
+            ..addCommand(
+              Tests(
+                ggLog: messages.add,
+                processWrapper: wrapper,
+                concurrency: concurrency,
+                timeoutFactor: timeoutFactor,
+              ),
+            );
 
           await expectLater(
             localRunner.run(['tests', '--input', pkgDir.path]),
             throwsA(isA<Exception>()),
           );
         }
+
+        group('with a number of test files to run at the same time', () {
+          setUp(() {
+            writePubspec();
+            writeLock('0.6.15');
+          });
+
+          test('leaves it to the test runner when nobody says', () async {
+            await runTestsCommand();
+            expect(capturedArgs!.join(' '), isNot(contains('--concurrency')));
+
+            await runTestsCommand(concurrency: () => null);
+            expect(capturedArgs!.join(' '), isNot(contains('--concurrency')));
+          });
+
+          test('hands the number to the test runner', () async {
+            await runTestsCommand(concurrency: () => 3);
+            expect(capturedArgs!.take(4), [
+              ...Tests.dartTestRunnerArgs,
+              '--concurrency=3',
+            ]);
+          });
+
+          test('asks for the number when the run starts', () async {
+            var files = 3;
+            int? concurrency() => files;
+
+            await runTestsCommand(concurrency: concurrency);
+            expect(capturedArgs, contains('--concurrency=3'));
+
+            files = 5;
+            await runTestsCommand(concurrency: concurrency);
+            expect(capturedArgs, contains('--concurrency=5'));
+          });
+
+          test('runs at least one test file at a time', () async {
+            await runTestsCommand(concurrency: () => 0);
+            expect(capturedArgs, contains('--concurrency=1'));
+          });
+
+          test('also for a flutter project', () async {
+            testIsFlutter = true;
+            await runTestsCommand(concurrency: () => 2);
+            expect(capturedArgs!.take(2), ['test', '--concurrency=2']);
+          });
+        });
+
+        group('with a factor for the time a test may take', () {
+          setUp(() {
+            writePubspec();
+            writeLock('0.6.15');
+          });
+
+          test('leaves the timeouts alone when nobody says, and for a '
+              'factor of one', () async {
+            await runTestsCommand();
+            expect(capturedArgs!.join(' '), isNot(contains('--timeout')));
+
+            await runTestsCommand(timeoutFactor: () => null);
+            expect(capturedArgs!.join(' '), isNot(contains('--timeout')));
+
+            await runTestsCommand(timeoutFactor: () => 1);
+            expect(capturedArgs!.join(' '), isNot(contains('--timeout')));
+          });
+
+          test('hands the factor to the test runner', () async {
+            await runTestsCommand(concurrency: () => 3, timeoutFactor: () => 4);
+            expect(capturedArgs!.take(5), [
+              ...Tests.dartTestRunnerArgs,
+              '--concurrency=3',
+              '--timeout=4x',
+            ]);
+          });
+
+          test('asks for the factor when the run starts', () async {
+            var factor = 2;
+            int? timeoutFactor() => factor;
+
+            await runTestsCommand(timeoutFactor: timeoutFactor);
+            expect(capturedArgs, contains('--timeout=2x'));
+
+            factor = 3;
+            await runTestsCommand(timeoutFactor: timeoutFactor);
+            expect(capturedArgs, contains('--timeout=3x'));
+          });
+        });
 
         test('passes --coverage-package when test_core supports it', () async {
           writePubspec();
@@ -660,6 +756,19 @@ sdks:
             capturedArgs,
             containsAllInOrder(['--coverage-package', '^my_pkg\$']),
           );
+        });
+
+        test('starts the test runner without the Dart Development '
+            'Service', () async {
+          writePubspec();
+          writeLock('0.6.15');
+          await runTestsCommand();
+
+          // "dart run --no-dds test:test" is "dart test" without DDS, which
+          // cuts the runner's connections to the VM service on a busy
+          // machine.
+          expect(capturedArgs!.take(3), ['run', '--no-dds', 'test:test']);
+          expect(capturedArgs!.take(3), Tests.dartTestRunnerArgs);
         });
 
         test('omits --coverage-package when test_core is too old', () async {

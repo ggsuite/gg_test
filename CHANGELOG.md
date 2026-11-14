@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.4.0 - 2026-11-14
+
+### Added
+
+- Add the blog post, a README section and index.jsonc
+
+### Changed
+
+- Run the tests without DDS, with a given concurrency
+
 ## 3.3.5 - 2026-11-06
 
 ## 3.3.4 - 2026-10-16
