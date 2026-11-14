@@ -47,4 +47,7 @@ Because this package runs itself through its own coverage gate, every file under
 `analysis_options.yaml` enables strict-casts / strict-inference / strict-raw-types and requires `public_member_api_docs`, `lines_longer_than_80_chars`, `prefer_single_quotes`, `require_trailing_commas`, and `always_declare_return_types` as an error. New public API without a doc comment will break `dart analyze`.
 
 <!-- helix:claude_md:start -->
+
+@.claude/CLAUDE_dna_gg.md
+
 <!-- helix:claude_md:end -->
