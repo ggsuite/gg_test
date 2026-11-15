@@ -940,6 +940,229 @@ sdks:
       });
     });
 
+    // .........................................................................
+    // A failed run has to say what failed. A failure that names a file of
+    // the package is reported by that location. A timeout, a test file that
+    // does not load or an error thrown inside the SDK names none, and used
+    // to end as nothing but »Tests failed«.
+    group('when the test run fails', () {
+      late Directory pkgDir;
+      late MockGgProcessWrapper wrapper;
+
+      setUp(() {
+        pkgDir = Directory.systemTemp.createTempSync('gg_test_failed_');
+
+        // A minimal package passing the missing-test-files check
+        File(join(pkgDir.path, 'pubspec.yaml'))
+            .writeAsStringSync('name: my_pkg\n');
+        Directory(join(pkgDir.path, 'lib', 'src')).createSync(recursive: true);
+        File(join(pkgDir.path, 'lib', 'src', 'foo.dart'))
+            .writeAsStringSync('void foo() {}\n');
+        Directory(join(pkgDir.path, 'test')).createSync(recursive: true);
+        File(join(pkgDir.path, 'test', 'foo_test.dart'))
+            .writeAsStringSync('void main() {}\n');
+
+        wrapper = MockGgProcessWrapper();
+      });
+
+      tearDown(() => pkgDir.deleteSync(recursive: true));
+
+      /// Runs the command on a test process that prints [stdout] and
+      /// [stderr] and ends with [exitCode]. Returns the lines logged below
+      /// the status line.
+      Future<List<String>> run({
+        required List<String> stdout,
+        List<String> stderr = const [],
+        int exitCode = 1,
+      }) async {
+        when(
+          () => wrapper.start(
+            any(),
+            any(),
+            workingDirectory: any(named: 'workingDirectory'),
+          ),
+        ).thenAnswer((_) async {
+          final process = GgFakeProcess();
+
+          // The process prints once the command listens to it.
+          Future<void>.delayed(Duration.zero, () {
+            process.pushToStdout.add(stdout.join('\n').os);
+            process.pushToStderr.add(stderr.join('\n'));
+            process.exit(exitCode);
+          });
+
+          return process;
+        });
+
+        final localRunner = CommandRunner<void>('test', 'test')
+          ..addCommand(Tests(ggLog: messages.add, processWrapper: wrapper));
+
+        await expectLater(
+          localRunner.run(['tests', '--input', pkgDir.path]),
+          throwsA(isA<Exception>()),
+        );
+
+        // The first two messages are the status line, running and failed.
+        expect(messages, hasLength(3));
+        return rmControls(messages.last).split('\n');
+      }
+
+      const timedOut = [
+        '00:00 +0: test/foo_test.dart: Foo times out',
+        '00:30 +0 -1: test/foo_test.dart: Foo times out [E]',
+        '  TimeoutException after 0:00:30.000000: Test timed out after 30 '
+            'seconds.',
+        '  dart:isolate  _RawReceivePort._handleMessage',
+        '  ',
+      ];
+
+      const failedExpectation = [
+        '00:30 +0 -1: test/foo_test.dart: Foo is two',
+        '00:30 +0 -2: test/foo_test.dart: Foo is two [E]',
+        '  Expected: <2>',
+        '    Actual: <1>',
+        '  ',
+        '  package:matcher         expect',
+        '  test/foo_test.dart 9:7  main.<fn>.<fn>',
+        '  ',
+      ];
+
+      const summary = ['00:31 +0 -2: Some tests failed.'];
+
+      test('names a test that failed without naming a file location, and '
+          'shows its error', () async {
+        final lines = await run(stdout: [...timedOut, ...summary]);
+
+        expect(lines, [
+          ' - ${'test/foo_test.dart'.os}: Foo times out',
+          '  TimeoutException after 0:00:30.000000: Test timed out after 30 '
+              'seconds.',
+          '  dart:isolate  _RawReceivePort._handleMessage',
+        ]);
+      });
+
+      test('names a test file that does not load', () async {
+        final lines = await run(
+          stdout: [
+            '00:00 +0: loading test/foo_test.dart',
+            '00:05 +0 -1: loading test/foo_test.dart [E]',
+            '  Failed to load "test/foo_test.dart": Connection closed before '
+                'full header was received',
+            '  ',
+            '00:05 +0 -1: Some tests failed.',
+          ],
+        );
+
+        expect(lines, [
+          ' - loading ${'test/foo_test.dart'.os}',
+          '  Failed to load "${'test/foo_test.dart'.os}": Connection closed '
+              'before full header was received',
+        ]);
+      });
+
+      test('shows only the first lines of a long error', () async {
+        final lines = await run(
+          stdout: [
+            '00:00 +0 -1: test/foo_test.dart: Foo throws [E]',
+            '  PathAccessException: Deletion failed',
+            for (var i = 1; i <= 7; i++) '  dart:io  frame $i',
+            '00:00 +0 -1: Some tests failed.',
+          ],
+        );
+
+        expect(lines, [
+          ' - ${'test/foo_test.dart'.os}: Foo throws',
+          '  PathAccessException: Deletion failed',
+          for (var i = 1; i <= 5; i++) '  dart:io  frame $i',
+          '  …',
+        ]);
+      });
+
+      test('reports a failure that names a file location by that '
+          'location', () async {
+        final lines = await run(stdout: [...failedExpectation, ...summary]);
+
+        expect(lines, [
+          ' - ${'test/foo_test.dart:9:7'.os}',
+          '00:30 +0 -2: ${'test/foo_test.dart'.os}: Foo is two [E]',
+          '  Expected: <2>',
+          '    Actual: <1>',
+        ]);
+      });
+
+      test('reports every failed test of a run, each with its own '
+          'error', () async {
+        final lines = await run(
+          stdout: [...timedOut, ...failedExpectation, ...summary],
+        );
+
+        expect(lines, [
+          ' - ${'test/foo_test.dart'.os}: Foo times out',
+          '  TimeoutException after 0:00:30.000000: Test timed out after 30 '
+              'seconds.',
+          '  dart:isolate  _RawReceivePort._handleMessage',
+          ' - ${'test/foo_test.dart:9:7'.os}',
+          '00:30 +0 -2: ${'test/foo_test.dart'.os}: Foo is two [E]',
+          '  Expected: <2>',
+          '    Actual: <1>',
+        ]);
+      });
+
+      test('reports a location once when several tests fail there', () async {
+        final lines = await run(
+          stdout: [
+            ...failedExpectation,
+            '00:30 +0 -2: test/foo_test.dart: Foo is two again',
+            '00:30 +0 -3: test/foo_test.dart: Foo is two again [E]',
+            '  Expected: <2>',
+            '    Actual: <1>',
+            '  test/foo_test.dart 9:7  main.<fn>.<fn>',
+            '  ',
+            ...summary,
+          ],
+        );
+
+        expect(lines.where((line) => line.startsWith(' - ')), [
+          ' - ${'test/foo_test.dart:9:7'.os}',
+        ]);
+      });
+
+      test('reports a location named outside of a failed test', () async {
+        final lines = await run(
+          stdout: [
+            "test/foo_test.dart:5:3: Error: Expected ';' after this.",
+            '00:00 +0: Some tests failed.',
+          ],
+        );
+
+        expect(lines, [' - ${'test/foo_test.dart:5:3'.os}']);
+      });
+
+      test('shows the end of the output when the run names no failed '
+          'test', () async {
+        final lines = await run(
+          stdout: [for (var i = 1; i <= 8; i++) 'stdout $i', ''],
+          stderr: ['stderr 1', 'stderr 2'],
+          exitCode: 3,
+        );
+
+        expect(lines, [
+          ' - The test run ended with exit code 3 and named no failed test.',
+          for (var i = 3; i <= 8; i++) '  stdout $i',
+          '  stderr 1',
+          '  stderr 2',
+        ]);
+      });
+
+      test('also for a flutter project', () async {
+        testIsFlutter = true;
+
+        final lines = await run(stdout: [...timedOut, ...summary]);
+
+        expect(lines.first, ' - ${'test/foo_test.dart'.os}: Foo times out');
+      });
+    });
+
     group('isCoverageSourceForOwnFile', () {
       test('matches sources from the package itself', () {
         expect(
