@@ -50,10 +50,10 @@ found in the LICENSE file in the root of this package.
   reads stdout and stderr, waits for the exit code and then evaluates.
 - `_noteFailedTests` writes one message per failed test. With a location
   it is the link as before. Without one it is the name of the test and
-  the first six lines of its error; more lines are announced by `...`.
+  the first six lines of its error; more lines are announced by `…`.
 - `_noteUnexplainedExit` covers a run that ends with an error code
   although no failed test was named: it shows the exit code and the last
-  six lines the run printed, stderr first.
+  six lines of stdout and of stderr.
 - A run fails when the exit code is not zero or a failed test was found.
 
 ## Tests
