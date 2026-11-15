@@ -812,10 +812,6 @@ void main() {
 
     // Run the Dart coverage command
 
-    var errorLines = <String>{};
-    var previousMessagesBelongingToError = <String>[];
-    var isError = false;
-
     var process = await processWrapper.start('dart', [
       ...dartTestRunnerArgs,
       ..._concurrencyArgs,
@@ -829,59 +825,121 @@ void main() {
       '--no-color',
     ], workingDirectory: dir.path);
 
-    // Iterate over stdout and print output using a for loop
-    await _processTestOutput(
-      process,
-      isError,
-      previousMessagesBelongingToError,
-      errorLines,
-    );
-
-    return await process.exitCode != 0 || errorLines.isNotEmpty ? 1 : 0;
+    return _evaluateTestRun(process);
   }
 
   // ...........................................................................
-  Future<void> _processTestOutput(
-    Process process,
-    bool isError,
-    List<String> previousMessagesBelongingToError,
-    Set<String> errorLines,
-  ) async {
-    // Iterate over stdout and print output using a for loop
+  /// How many lines of an error are shown below a failed test that names
+  /// no file location, and how many lines of a run that ended without
+  /// naming a failed test.
+  static const _maxDetailLines = 6;
 
-    await for (var event in process.stdout.transform(utf8.decoder)) {
-      isError = isError || event.contains('[E]');
-      if (isError) {
-        event = ErrorInfoReader().makeVscodeCompatible(event);
-        previousMessagesBelongingToError.add(event);
-      }
+  // ...........................................................................
+  /// Reads what the test [process] prints, notes in [_messages] what
+  /// failed, and returns 0 for a run without failures, 1 otherwise.
+  Future<int> _evaluateTestRun(Process process) async {
+    // Both streams are read from the start: a process stops once the pipe
+    // of a stream nobody reads is full.
+    const decoder = Utf8Decoder(allowMalformed: true);
+    final stderrOutput = process.stderr.transform(decoder).join();
+    final stdout = await process.stdout.transform(decoder).join();
+    final stderr = await stderrOutput;
+    final exitCode = await process.exitCode;
 
-      final newErrorLines = ErrorInfoReader().extractErrorLines(event);
+    final messageCount = _messages.length;
+    final errorLines = _noteFailedTests(stdout);
 
-      if (newErrorLines.isNotEmpty &&
-          !errorLines.contains(newErrorLines.first)) {
-        // Print error line
-        final newErrorLinesString = cError(newErrorLines.join(',\n   ').os);
-        _messages.add(' - $newErrorLinesString');
+    // The run failed and nothing above says why, e.g. because the runner
+    // itself ended early. Show the end of what it printed.
+    if (exitCode != 0 && _messages.length == messageCount) {
+      _noteUnexplainedExit(exitCode, stdout: stdout, stderr: stderr);
+    }
 
-        // Print details
-        final cleanedMessage = ErrorInfoReader().cleanupTestErrors(
-          previousMessagesBelongingToError,
-        );
-        for (var message in cleanedMessage) {
-          _messages.add(brightBlack(message));
+    return exitCode != 0 || errorLines.isNotEmpty ? 1 : 0;
+  }
+
+  // ...........................................................................
+  /// Notes the failed tests of a run in [_messages] and returns the file
+  /// locations [output] names.
+  ///
+  /// A failure that names a location in the package is reported by that
+  /// location, which the editor turns into a link. Every other failure — a
+  /// timeout, a test file that does not load, an error whose stack trace
+  /// only names the SDK — is reported by the name of the test, followed by
+  /// the first lines of the error. So a failed run always says what failed.
+  Set<String> _noteFailedTests(String output) {
+    final reader = ErrorInfoReader();
+    final errorLines = <String>{};
+
+    for (final failedTest in reader.failedTests(output)) {
+      // Line by line: a location never spans two lines, but a path at the
+      // end of one line and a time at the start of the next look like one.
+      final lines = failedTest.lines.map(reader.makeVscodeCompatible).toList();
+      final locations = lines.expand(reader.extractErrorLines).toList();
+
+      if (locations.isEmpty) {
+        _messages.add(' - ${cError(failedTest.name)}');
+        final details = failedTest.details;
+        for (final line in details.take(_maxDetailLines)) {
+          _messages.add(brightBlack(line));
         }
-
-        isError = false;
+        if (details.length > _maxDetailLines) {
+          _messages.add(brightBlack('  …'));
+        }
+        continue;
       }
-      errorLines.addAll(newErrorLines);
+
+      // A location is reported once, however many tests fail there.
+      if (!errorLines.contains(locations.first)) {
+        _messages.add(' - ${cError(locations.join(',\n   ').os)}');
+        for (final line in reader.cleanupTestErrors(lines)) {
+          _messages.add(brightBlack(line));
+        }
+      }
+      errorLines.addAll(locations);
+    }
+
+    // A location named outside of a failed test, e.g. by an error the
+    // runner prints before it starts the tests.
+    final rest = reader.linesOutsideFailedTests(output);
+    for (final location in rest.expand(reader.extractErrorLines)) {
+      if (errorLines.add(location)) {
+        _messages.add(' - ${cError(location.os)}');
+      }
+    }
+
+    return errorLines;
+  }
+
+  // ...........................................................................
+  /// Notes in [_messages] that the test run ended with [exitCode] without
+  /// naming a failed test, followed by the last lines it printed.
+  void _noteUnexplainedExit(
+    int exitCode, {
+    required String stdout,
+    required String stderr,
+  }) {
+    _messages.add(
+      ' - ${cError('The test run ended with exit code $exitCode and '
+      'named no failed test.')}',
+    );
+
+    for (final output in [stdout, stderr]) {
+      final lines = const LineSplitter()
+          .convert(output)
+          .where((line) => line.trim().isNotEmpty)
+          .toList();
+      final first = lines.length > _maxDetailLines
+          ? lines.length - _maxDetailLines
+          : 0;
+      for (final line in lines.skip(first)) {
+        _messages.add(brightBlack('  $line'));
+      }
     }
   }
 
   // ...........................................................................
   Future<int> _testFlutter(Directory dir) async {
-    int exitCode = 0;
-
     // Remove the coverage directory, exactly as _testDart does. »flutter test
     // --coverage« writes an »SF:« record only for the libraries a run actually
     // loads, and it does not truncate what an earlier run left behind. Reading
@@ -898,21 +956,7 @@ void main() {
       workingDirectory: dir.path,
     );
 
-    var errorLines = <String>{};
-    var previousMessagesBelongingToError = <String>[];
-    var isError = false;
-
-    // Iterate over stdout and print output using a for loop
-    await _processTestOutput(
-      process,
-      isError,
-      previousMessagesBelongingToError,
-      errorLines,
-    );
-
-    exitCode = await process.exitCode;
-
-    return exitCode != 0 || errorLines.isNotEmpty ? 1 : 0;
+    return _evaluateTestRun(process);
   }
 
   // ...........................................................................

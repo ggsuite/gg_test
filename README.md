@@ -34,6 +34,15 @@ to the relevant sections of their code directly from the error messages. By
 integrating seamlessly with VSCode, `gg_test` streamlines the testing and
 debugging process, saving valuable development time.
 
+### Every Failed Test Is Named
+
+A failure does not always name a file of the package: a test that runs
+into its timeout, a test file that does not load or an error thrown inside
+the SDK has no location to link. `gg_test` still names the test and shows
+the first lines of its error. When the test run ends with an error code
+without naming a failed test at all, it shows the exit code and the last
+lines the run printed.
+
 ### Flutter and Dart Support
 
 Designed with the Flutter and Dart ecosystems in mind, `gg_test` is a versatile

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Name every failed test, also without a file location
+
 ## 3.4.0 - 2026-11-14
 
 ### Added

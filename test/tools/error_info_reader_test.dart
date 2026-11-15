@@ -93,7 +93,125 @@ void main() {
       expect(result, ['lib/src/assembly/load_glbs.dart:58:5']);
     });
   });
+
+  group('failedTests', () {
+    test('returns the failed tests with what the runner printed about '
+        'them', () {
+      final failed = errorInfoReader.failedTests(testRunOutput);
+
+      expect(failed.map((test) => test.name), [
+        'loading test/load_fails_test.dart',
+        'test/simple_base_test.dart: SimpleBase times out',
+        'test/simple_base_test.dart: SimpleBase fails with a location',
+      ]);
+
+      // The line naming the test comes first, then the error.
+      expect(failed[1].lines, [
+        '00:00 +5 -2: test/simple_base_test.dart: SimpleBase times out [E]',
+        '  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds.',
+        '  dart:isolate  _RawReceivePort._handleMessage',
+        '',
+      ]);
+    });
+
+    test('offers the error of a failed test without the line naming it and '
+        'without empty lines', () {
+      final failed = errorInfoReader.failedTests(testRunOutput);
+
+      expect(failed[0].details, [
+        '  Failed to load "test/load_fails_test.dart": Bad state: cannot load',
+      ]);
+      expect(failed[2].details, [
+        '  Expected: <2>',
+        '    Actual: <1>',
+        '  package:matcher                  expect',
+        '  test/simple_base_test.dart 31:7  main.<fn>.<fn>',
+      ]);
+    });
+
+    test('does not take the summary at the end for a failed test', () {
+      final failed = errorInfoReader.failedTests(testRunOutput);
+      expect(
+        failed.expand((test) => test.lines),
+        isNot(contains('Failing tests:')),
+      );
+    });
+
+    test('reads the lines of hours, skipped tests and windows line '
+        'endings', () {
+      final failed = errorInfoReader.failedTests(
+        [
+          '01:02:03 +5 ~1 -1: test/a_test.dart: A fails [E]',
+          '  Bad state: a',
+          '01:02:04 +5 ~1 -1: Some tests failed.',
+        ].join('\r\n'),
+      );
+
+      expect(failed.single.name, 'test/a_test.dart: A fails');
+      expect(failed.single.details, ['  Bad state: a']);
+    });
+
+    test('returns nothing for a run without failed tests', () {
+      expect(errorInfoReader.failedTests(''), isEmpty);
+      expect(
+        errorInfoReader.failedTests(
+          '00:00 +0: test/a_test.dart: A works\n00:00 +1: All tests passed!',
+        ),
+        isEmpty,
+      );
+    });
+  });
+
+  group('linesOutsideFailedTests', () {
+    test('returns the lines that belong to no failed test', () {
+      final rest = errorInfoReader.linesOutsideFailedTests(testRunOutput);
+
+      expect(rest, [
+        '00:00 +0: loading test/class_without_methods_test.dart',
+        '00:00 +0 -1: test/ignore_file_test.dart: IgnoreFile should work fine',
+        '00:00 +5 -1: test/simple_base_test.dart: SimpleBase times out',
+        '00:00 +5 -2: test/simple_base_test.dart: SimpleBase fails with a location',
+        '00:02 +5 -3: Some tests failed.',
+        '',
+        'Failing tests:',
+        '  test/load_fails_test.dart: loading test/load_fails_test.dart',
+        '  test/simple_base_test.dart: SimpleBase fails with a location',
+        '  test/simple_base_test.dart: SimpleBase times out',
+      ]);
+    });
+  });
 }
+
+// .............................................................................
+/// What `dart test -r expanded` printed for a run with three failures: a
+/// test file that does not load, a test that timed out and a failed
+/// expectation.
+const testRunOutput = '''
+00:00 +0: loading test/class_without_methods_test.dart
+00:00 +0 -1: loading test/load_fails_test.dart [E]
+  Failed to load "test/load_fails_test.dart": Bad state: cannot load
+
+00:00 +0 -1: test/ignore_file_test.dart: IgnoreFile should work fine
+00:00 +5 -1: test/simple_base_test.dart: SimpleBase times out
+00:00 +5 -2: test/simple_base_test.dart: SimpleBase times out [E]
+  TimeoutException after 0:00:30.000000: Test timed out after 30 seconds.
+  dart:isolate  _RawReceivePort._handleMessage
+
+00:00 +5 -2: test/simple_base_test.dart: SimpleBase fails with a location
+00:00 +5 -3: test/simple_base_test.dart: SimpleBase fails with a location [E]
+  Expected: <2>
+    Actual: <1>
+
+  package:matcher                  expect
+  test/simple_base_test.dart 31:7  main.<fn>.<fn>
+
+00:02 +5 -3: Some tests failed.
+
+Failing tests:
+  test/load_fails_test.dart: loading test/load_fails_test.dart
+  test/simple_base_test.dart: SimpleBase fails with a location
+  test/simple_base_test.dart: SimpleBase times out
+''';
 
 // .............................................................................
 const dartAnalyzeOutput = '''
